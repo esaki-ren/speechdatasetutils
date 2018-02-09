@@ -43,7 +43,6 @@ class NPZDataset(DatasetMixin):
 
     def get_example(self, i):
         path = self._paths[i]
-        print(path)
         load = dict(np.load(path))
         if self.length:
             if len(load['wave']) < self.length:
@@ -80,6 +79,7 @@ class NPZDataset(DatasetMixin):
                 if self.mode == 'softmax':
                     rdict[rkey] = mulaw_quantize(rdict[rkey]).astype('int32')
 
+        print(rdict)
         return rdict
 
 
