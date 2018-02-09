@@ -28,10 +28,10 @@ class NPZDataset(DatasetMixin):
         self._paths = paths
         with open(os.path.join(default_dataset_root, 'datasetparam.json'), 'r') as f:
             load = json.load(f)
-        self.m_max = load['mspec_max']
-        self.m_min = load['mspec_min']
-        self.p_max = load['pspec_max']
-        self.p_min = load['pspec_min']
+        self.m_shift = load['mspec_min']
+        self.m_scale = load['mspec_max'] - load['mspec_min']
+        self.p_shift = load['pspec_min']
+        self.p_scale = load['pspec_max'] - load['pspec_min']
         self.upsample = load['upsample']
         self.length = length
         self.mode = mode
@@ -66,13 +66,11 @@ class NPZDataset(DatasetMixin):
         rdict = {}
         for rkey, key in self.keydict.items():
             if key is 'mspec':
-                rdict[rkey] = ((load.pop('mspec') - self.m_min) /
-                               (self.m_max - self.m_min)).astype('float32')
+                rdict[rkey] = ((load.pop('mspec') - self.m_shift) / self.m_scale).astype('float32')
                 if self.spec_mode is 'conv':
                     rdict[rkey] = rdict[rkey].T
             elif key is 'pspec':
-                rdict[rkey] = ((load.pop('pspec') - self.p_min) /
-                               (self.p_max - self.p_min)).astype('float32')
+                rdict[rkey] = ((load.pop('pspec') - self.p_shift) / self.p_scale).astype('float32')
                 if self.spec_mode is 'conv':
                     rdict[rkey] = rdict[rkey].T
             elif key is 'wave':
