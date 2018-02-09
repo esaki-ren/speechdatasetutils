@@ -58,9 +58,9 @@ class NPZDataset(DatasetMixin):
                 index = np.random.randint(0, len(load['wave']) - self.length)
             index = (index // self.upsample) * self.upsample
             load['wave'] = load['wave'][index:index + self.length + 1]
-            load['mspec'] = load['mspec'][..., index //
+            load['mspec'] = load['mspec'][index //
                                           self.upsample:(index + self.length) // self.upsample]
-            load['pspec'] = load['pspec'][..., index //
+            load['pspec'] = load['pspec'][index //
                                           self.upsample:(index + self.length) // self.upsample]
 
         rdict = {}
@@ -68,9 +68,13 @@ class NPZDataset(DatasetMixin):
             if key is 'mspec':
                 rdict[rkey] = ((load.pop('mspec') - self.m_min) /
                                (self.m_max - self.m_min)).astype('float32')
-            elif key is 'mspec':
+                if self.spec_mode is 'conv':
+                    rdict[rkey] = rdict[rkey].T
+            elif key is 'pspec':
                 rdict[rkey] = ((load.pop('pspec') - self.p_min) /
                                (self.p_max - self.p_min)).astype('float32')
+                if self.spec_mode is 'conv':
+                    rdict[rkey] = rdict[rkey].T
             elif key is 'wave':
                 rdict[rkey] = (load.pop('wave').reshape(
                     1, -1) / (2.0**15 - 1)).astype('float32')
