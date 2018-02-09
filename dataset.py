@@ -1,3 +1,4 @@
+import json
 import os
 from glob import glob
 from random import choice
@@ -13,21 +14,29 @@ from nnmnkwii.preprocessing import mulaw_quantize
 from pyvad import trim
 from scipy import signal
 
+from default_settings import DEFAULT
 
+
+default_dataset_root = os.path.join(DEFAULT['datasetroot'], DEFAULT['npzdir'])
 
 
 class NPZDataset(DatasetMixin):
 
-    def __init__(self, mode, length=7680):
+    def __init__(self, dataset_root=default_dataset_root, length=7680, spec_mode='conv', mode='mixture', keydict=dict(wave='wave', lc='mspec')):
         paths = sorted(
-            glob(os.path.join(NPZROOT, 'data*.npz'), recursive=True))
+            glob(os.path.join(dataset_root, '**/*.npz'), recursive=True))
         self._paths = paths
-        load = np.load(os.path.join(NPZROOT, 'minmax.npz'))
-        self.shift = load['min']
-        self.scale = load['max'] - load['min']
+        with open(os.path.join(default_dataset_root, 'datasetparam.json'), 'r') as f:
+            load = json.load(f)
+        self.m_max = load['mspec_max']
+        self.m_min = load['mspec_min']
+        self.p_max = load['pspec_max']
+        self.p_min = load['pspec_min']
         self.upsample = load['upsample']
         self.length = length
         self.mode = mode
+        self.spec_mode = spec_mode
+        self.keydict = keydict
 
     def __len__(self):
         return len(self._paths)
@@ -35,19 +44,41 @@ class NPZDataset(DatasetMixin):
     def get_example(self, i):
         path = self._paths[i]
         load = dict(np.load(path))
-        index = np.random.randint(0, len(load['wave']) - self.length)
-        index = (index // self.upsample) * self.upsample
-        wave = load.pop('wave')[index:index + self.length + 1]
-        load['wave'] = (wave.reshape(
-            1, -1) / (2.0**15 - 1)).astype('float32')
-        lc = load.pop('lc')[..., index //
-                            self.upsample:(index + self.length) // self.upsample]
-        load['lc'] = (lc - self.shift) / self.scale
-        if self.mode == 'softmax':
-            load['wave'] = mulaw_quantize(load['wave']).astype('int32')
-        return load
+        if self.length:
+            if len(load['wave']) < self.length:
+                load['wave'] = np.pad(
+                    load['wave'], (0, self.length - len(load['wave']) + 1), 'constant', constant_values=0)
+                spec_len = self.length // self.upsample
+                load['mspec'] = np.pad(
+                    load['mspec'], (0, spec_len - len(load['mspec'])), 'constant', constant_values=self.m_min)
+                load['pspec'] = np.pad(
+                    load['pspec'], (0, spec_len - len(load['pspec'])), 'constant', constant_values=self.p_min)
+                index = 0
+            else:
+                index = np.random.randint(0, len(load['wave']) - self.length)
+            index = (index // self.upsample) * self.upsample
+            load['wave'] = load['wave'][index:index + self.length + 1]
+            load['mspec'] = load['mspec'][..., index //
+                                          self.upsample:(index + self.length) // self.upsample]
+            load['pspec'] = load['pspec'][..., index //
+                                          self.upsample:(index + self.length) // self.upsample]
 
+        rdict = {}
+        for rkey, key in self.keydict.items():
+            if key is 'mspec':
+                rdict[rkey] = ((load.pop('mspec') - self.m_min) /
+                               (self.m_max - self.m_min)).astype('float32')
+            elif key is 'mspec':
+                rdict[rkey] = ((load.pop('pspec') - self.p_min) /
+                               (self.p_max - self.p_min)).astype('float32')
+            elif key is 'wave':
+                rdict[rkey] = (load.pop('wave').reshape(
+                    1, -1) / (2.0**15 - 1)).astype('float32')
+                if self.mode == 'softmax':
+                    rdict[rkey] = mulaw_quantize(rdict[rkey]).astype('int32')
+
+        return rdict
 
 
 if __name__ == '__main__':
-    make_npz()
+    NPZDataset(length=7680).get_example(1)
