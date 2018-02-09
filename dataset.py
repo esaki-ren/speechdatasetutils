@@ -66,16 +66,16 @@ class NPZDataset(DatasetMixin):
         rdict = {}
         for rkey, key in self.keydict.items():
             print(i, rkey, key)
-            print(i, key is 'wav')
-            if key is 'mspec':
+            print(i, key == 'wav')
+            if key == 'mspec':
                 rdict[rkey] = ((load.pop('mspec') - self.m_shift) / self.m_scale).astype('float32')
-                if self.spec_mode is 'conv':
+                if self.spec_mode == 'conv':
                     rdict[rkey] = rdict[rkey].T
-            elif key is 'pspec':
+            elif key == 'pspec':
                 rdict[rkey] = ((load.pop('pspec') - self.p_shift) / self.p_scale).astype('float32')
-                if self.spec_mode is 'conv':
+                if self.spec_mode == 'conv':
                     rdict[rkey] = rdict[rkey].T
-            elif key is 'wave':
+            elif key == 'wave':
                 print(i, 'wav process')
                 rdict[rkey] = (load.pop('wave').reshape(
                     1, -1) / (2.0**15 - 1)).astype('float32')
