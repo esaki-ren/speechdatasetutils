@@ -14,7 +14,7 @@ from nnmnkwii.preprocessing import mulaw_quantize
 from pyvad import trim
 from scipy import signal
 
-from default_settings import DEFAULT
+from .default_settings import DEFAULT
 
 
 default_dataset_root = os.path.join(DEFAULT['datasetroot'], DEFAULT['npzdir'])
