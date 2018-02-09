@@ -1,6 +1,7 @@
 import os
 from glob import glob
 from random import choice
+import json
 
 import chainer
 import numpy as np
@@ -61,8 +62,14 @@ def make_npz(**kwargs):
     except KeyboardInterrupt:
         pass
     
-    np.savez(os.path.join(npz_dir, 'minmax'), max=np.array(
-        lc_max).astype('float32'), min=np.array(lc_min).astype('float32'), upsample=upsample)
+    np.savez(os.path.join(npz_dir, 'minmax'), mspec_max=np.array(mspec_max).astype('float32'), 
+                                              mspec_min=np.array(mspec_min).astype('float32'), 
+                                              pspec_max=np.array(pspec_max).astype('float32'), 
+                                              pspec_min=np.array(pspec_min).astype('float32'), 
+                                              upsample=upsample)
+    
+    with open(os.path.join(npz_dir, 'datasetparam.json'), 'w') as f:
+        json.dump(kwargs, f, indent=1, sort_keys=True)
             
 
 if __name__ == '__main__':
