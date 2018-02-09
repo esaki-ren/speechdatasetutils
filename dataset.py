@@ -65,8 +65,6 @@ class NPZDataset(DatasetMixin):
 
         rdict = {}
         for rkey, key in self.keydict.items():
-            print(i, rkey, key)
-            print(i, key == 'wav')
             if key == 'mspec':
                 rdict[rkey] = ((load.pop('mspec') - self.m_shift) / self.m_scale).astype('float32')
                 if self.spec_mode == 'conv':
