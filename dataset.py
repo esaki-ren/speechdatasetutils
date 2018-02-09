@@ -75,11 +75,13 @@ class NPZDataset(DatasetMixin):
                 if self.spec_mode is 'conv':
                     rdict[rkey] = rdict[rkey].T
             elif key is 'wave':
+                print(i, 'wav process')
                 rdict[rkey] = (load.pop('wave').reshape(
                     1, -1) / (2.0**15 - 1)).astype('float32')
                 if self.mode == 'softmax':
                     rdict[rkey] = mulaw_quantize(rdict[rkey]).astype('int32')
-
+        
+        print(i, rdict.keys())
         return rdict
 
 
