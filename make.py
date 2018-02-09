@@ -40,9 +40,9 @@ def make_npz(**kwargs):
             if trimed is not None:
                 _, _, Zxx = signal.stft(
                     trimed, fs=kwargs['fs'], window=kwargs['window'], nperseg=kwargs['nperseg'], noverlap=kwargs['noverlap'])
-                pspec = np.abs(Zxx)**2
+                pspec = np.abs(Zxx)
                 pspec[pspec < kwargs['spec_threshold']] = kwargs['spec_threshold']
-                mspec = melspectrogram(sr=kwargs['fs'], S=pspec, n_mels=kwargs['nmels'])
+                mspec = melspectrogram(sr=kwargs['fs'], S=pspec, n_mels=kwargs['nmels'], power=1.0)
                 mspec[mspec < kwargs['spec_threshold']] = kwargs['spec_threshold']
                 pspec = np.log10(pspec).T.astype('float32')
                 mspec = np.log10(mspec).T.astype('float32')
@@ -62,14 +62,14 @@ def make_npz(**kwargs):
     except KeyboardInterrupt:
         pass
     
-    np.savez(os.path.join(npz_dir, 'minmax'), mspec_max=np.array(mspec_max).astype('float32'), 
-                                              mspec_min=np.array(mspec_min).astype('float32'), 
-                                              pspec_max=np.array(pspec_max).astype('float32'), 
-                                              pspec_min=np.array(pspec_min).astype('float32'), 
-                                              upsample=upsample)
-    
+    save = dict(mspec_max=float(mspec_max), 
+                mspec_min=float(mspec_min), 
+                pspec_max=float(pspec_max), 
+                pspec_min=float(pspec_min), 
+                upsample=upsample)
+    save.update(kwargs)
     with open(os.path.join(npz_dir, 'datasetparam.json'), 'w') as f:
-        json.dump(kwargs, f, indent=1, sort_keys=True)
+        json.dump(save, f, indent=1, sort_keys=True)
             
 
 if __name__ == '__main__':
