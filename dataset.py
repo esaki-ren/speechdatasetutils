@@ -44,8 +44,6 @@ class NPZDataset(DatasetMixin):
     def get_example(self, i):
         path = self._paths[i]
         load = dict(np.load(path))
-        print('load', load.keys())
-        print('keydict', self.keydict)
         if self.length:
             if len(load['wave']) < self.length:
                 load['wave'] = np.pad(
@@ -65,8 +63,8 @@ class NPZDataset(DatasetMixin):
             load['pspec'] = load['pspec'][index //
                                           self.upsample:(index + self.length) // self.upsample]
 
-        print('load2', load.keys())
-        print('keydict2', self.keydict)
+        print('load', load.keys())
+        print('keydict', self.keydict)
         rdict = {}
         for rkey, key in self.keydict.items():
             if key is 'mspec':
@@ -78,6 +76,7 @@ class NPZDataset(DatasetMixin):
                 if self.spec_mode is 'conv':
                     rdict[rkey] = rdict[rkey].T
             elif key is 'wave':
+                print('wav')
                 rdict[rkey] = (load.pop('wave').reshape(
                     1, -1) / (2.0**15 - 1)).astype('float32')
                 if self.mode == 'softmax':
