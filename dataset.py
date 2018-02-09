@@ -44,6 +44,8 @@ class NPZDataset(DatasetMixin):
     def get_example(self, i):
         path = self._paths[i]
         load = dict(np.load(path))
+        print(load)
+        print(self.keydict)
         if self.length:
             if len(load['wave']) < self.length:
                 load['wave'] = np.pad(
