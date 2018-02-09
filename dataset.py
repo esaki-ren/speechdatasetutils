@@ -65,6 +65,8 @@ class NPZDataset(DatasetMixin):
             load['pspec'] = load['pspec'][index //
                                           self.upsample:(index + self.length) // self.upsample]
 
+        print('load2', load.keys())
+        print('keydict2', self.keydict)
         rdict = {}
         for rkey, key in self.keydict.items():
             if key is 'mspec':
