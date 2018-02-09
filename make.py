@@ -50,6 +50,7 @@ def make_npz(**kwargs):
                 length = (len(trimed)// upsample)  * upsample
                 trimed = trimed[:length]
                 mspec = mspec[:length // upsample]
+                pspec = pspec[:length // upsample]
                 mspec_max = max((mspec.max(), mspec_max))
                 mspec_min = min((mspec.min(), mspec_min))
                 pspec_max = max((pspec.max(), pspec_max))
