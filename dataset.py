@@ -63,10 +63,9 @@ class NPZDataset(DatasetMixin):
             load['pspec'] = load['pspec'][index //
                                           self.upsample:(index + self.length) // self.upsample]
 
-        print('load', load.keys())
-        print('keydict', self.keydict)
         rdict = {}
         for rkey, key in self.keydict.items():
+            print(i, rkey, key)
             if key is 'mspec':
                 rdict[rkey] = ((load.pop('mspec') - self.m_shift) / self.m_scale).astype('float32')
                 if self.spec_mode is 'conv':
@@ -76,13 +75,11 @@ class NPZDataset(DatasetMixin):
                 if self.spec_mode is 'conv':
                     rdict[rkey] = rdict[rkey].T
             elif key is 'wave':
-                print('wav')
                 rdict[rkey] = (load.pop('wave').reshape(
                     1, -1) / (2.0**15 - 1)).astype('float32')
                 if self.mode == 'softmax':
                     rdict[rkey] = mulaw_quantize(rdict[rkey]).astype('int32')
 
-        print('return', rdict.keys())
         return rdict
 
 
