@@ -22,7 +22,8 @@ DEFAULT = dict(
     noverlap = NPERSEG - NSHIFT,
     nmels = 80,
     res_type='scipy',
-    spec_threshold=0.00001
+    spec_threshold=0.00001,
+    minimum_len=7680,
 )
 if __name__ == '__main__':
     assert signal.check_COLA(DEFAULT['WINDOW'], DEFAULT['NPERSEG'], DEFAULT['NOVERLAP'])
