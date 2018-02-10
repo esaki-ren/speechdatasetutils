@@ -45,7 +45,7 @@ class NPZDataset(DatasetMixin):
         path = self._paths[i]
         load = dict(np.load(path))
         if self.length:
-            if len(load['wave']) < self.length:
+            if len(load['wave']) <= self.length:
                 load['wave'] = np.pad(
                     load['wave'], (0, self.length - len(load['wave']) + 1), 'constant', constant_values=0)
                 spec_len = self.length // self.upsample
