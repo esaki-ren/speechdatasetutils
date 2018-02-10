@@ -50,10 +50,9 @@ def process(wavpath, wav_dir, npz_dir, override, kwargs):
         data = data / np.max(np.abs(data)) * 0.9
     trimed = trim(data, fs, vad_mode=3)
 
-    if len(trimed) < kwargs['minimum_len']:
-        return
-
     if trimed is not None:
+        if len(trimed) < kwargs['minimum_len']:
+            return
         _, _, Zxx = signal.stft(
             trimed, fs=kwargs['fs'], window=kwargs['window'], nperseg=kwargs['nperseg'], noverlap=kwargs['noverlap'])
         pspec = np.abs(Zxx)
