@@ -56,6 +56,7 @@ class NPZDataset(DatasetMixin):
                 index = 0
             else:
                 index = np.random.randint(0, len(load['wave']) - self.length)
+                
             index = (index // self.upsample) * self.upsample
             load['wave'] = load['wave'][index:index + self.length + 1]
             load['mspec'] = load['mspec'][index //
