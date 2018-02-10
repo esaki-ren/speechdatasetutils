@@ -50,9 +50,9 @@ class NPZDataset(DatasetMixin):
                     load['wave'], (0, self.length - len(load['wave']) + 1), 'constant', constant_values=0)
                 spec_len = self.length // self.upsample
                 load['mspec'] = np.pad(
-                    load['mspec'], (0, spec_len - len(load['mspec'])), 'constant', constant_values=self.m_min)
+                    load['mspec'], (0, spec_len - len(load['mspec'])), 'constant', constant_values=self.m_shift)
                 load['pspec'] = np.pad(
-                    load['pspec'], (0, spec_len - len(load['pspec'])), 'constant', constant_values=self.p_min)
+                    load['pspec'], (0, spec_len - len(load['pspec'])), 'constant', constant_values=self.p_shift)
                 index = 0
             else:
                 index = np.random.randint(0, len(load['wave']) - self.length)
