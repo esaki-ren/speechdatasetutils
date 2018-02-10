@@ -20,7 +20,7 @@ from scipy import signal
 
 from default_settings import DEFAULT
 
-mspec_max = Value('f', 100000000000.0)
+mspec_max = Value('f', -100000000000.0)
 pspec_max = Value('f', -10000000000.0)
 mspec_min = Value('f', 100000000000.0)
 pspec_min = Value('f', 100000000000.0)
