@@ -22,11 +22,15 @@ default_dataset_root = os.path.join(DEFAULT['datasetroot'], DEFAULT['npzdir'])
 
 class NPZDataset(DatasetMixin):
 
-    def __init__(self, dataset_root=default_dataset_root, length=7680, spec_mode='conv', mode='mixture', keydict=dict(wave='wave', lc='mspec')):
+    def __init__(self, dataset_root=default_dataset_root, dataset_dir="", param_file="datasetparam.json", length=7680, spec_mode='conv', mode='mixture', keydict=dict(wave='wave', lc='mspec')):
+        if dataset_dir:
+            data_dir = os.path.join(dataset_root, dataset_dir)
+        else:
+            data_dir = dataset_root
         paths = sorted(
-            glob(os.path.join(dataset_root, '**/*.npz'), recursive=True))
+            glob(os.path.join(data_dir, '**/*.npz'), recursive=True))
         self._paths = paths
-        with open(os.path.join(default_dataset_root, 'datasetparam.json'), 'r') as f:
+        with open(os.path.join(dataset_root, param_file), 'r') as f:
             load = json.load(f)
         self.m_shift = load['mspec_min']
         self.m_scale = load['mspec_max'] - load['mspec_min']
@@ -56,7 +60,7 @@ class NPZDataset(DatasetMixin):
                 index = 0
             else:
                 index = np.random.randint(0, len(load['wave']) - self.length)
-                
+
             index = (index // self.upsample) * self.upsample
             load['wave'] = load['wave'][index:index + self.length + 1]
             load['mspec'] = load['mspec'][index //
@@ -67,11 +71,13 @@ class NPZDataset(DatasetMixin):
         rdict = {}
         for rkey, key in self.keydict.items():
             if key == 'mspec':
-                rdict[rkey] = ((load.pop('mspec') - self.m_shift) / self.m_scale).astype('float32')
+                rdict[rkey] = ((load.pop('mspec') - self.m_shift) /
+                               self.m_scale).astype('float32')
                 if self.spec_mode == 'conv':
                     rdict[rkey] = rdict[rkey].T
             elif key == 'pspec':
-                rdict[rkey] = ((load.pop('pspec') - self.p_shift) / self.p_scale).astype('float32')
+                rdict[rkey] = ((load.pop('pspec') - self.p_shift) /
+                               self.p_scale).astype('float32')
                 if self.spec_mode == 'conv':
                     rdict[rkey] = rdict[rkey].T
             elif key == 'wave':
