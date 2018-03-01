@@ -1,7 +1,8 @@
 import json
 import os
+from copy import deepcopy
 from glob import glob
-from random import choice
+from random import choice, shuffle
 
 import chainer
 import numpy as np
@@ -14,7 +15,7 @@ from nnmnkwii.preprocessing import mulaw_quantize
 from pyvad import trim
 from scipy import signal
 
-from .default_settings import DEFAULT
+from default_settings import DEFAULT
 
 
 default_dataset_root = os.path.join(DEFAULT['datasetroot'], DEFAULT['npzdir'])
@@ -22,7 +23,7 @@ default_dataset_root = os.path.join(DEFAULT['datasetroot'], DEFAULT['npzdir'])
 
 class NPZDataset(DatasetMixin):
 
-    def __init__(self, dataset_root=default_dataset_root, dataset_dir="", param_file="datasetparam.json", length=7680, spec_mode='conv', mode='mixture', keydict=dict(wave='wave', lc='mspec')):
+    def __init__(self, dataset_root=default_dataset_root, dataset_dir="", param_file="datasetparam.json", length=7680, spec_mode='conv', mode='mixture', log_spec=True, spec_thr=None, keydict=dict(wave='wave', lc='mspec')):
         if dataset_dir:
             data_dir = os.path.join(dataset_root, dataset_dir)
         else:
@@ -32,6 +33,12 @@ class NPZDataset(DatasetMixin):
         self._paths = paths
         with open(os.path.join(dataset_root, param_file), 'r') as f:
             load = json.load(f)
+        
+        mspec_max = load['mspec_max']
+        pspec_max = load['pspec_max']
+        if 
+        mspec_min = load['mspec_min']
+        pspec_min = load['pspec_min']
         self.m_shift = load['mspec_min']
         self.m_scale = load['mspec_max'] - load['mspec_min']
         self.p_shift = load['pspec_min']
@@ -41,12 +48,18 @@ class NPZDataset(DatasetMixin):
         self.mode = mode
         self.spec_mode = spec_mode
         self.keydict = keydict
+        self.log_spec = log_spec
+        self.spec_thr = spec_thr
+        
 
     def __len__(self):
         return len(self._paths)
 
     def get_example(self, i):
         path = self._paths[i]
+        return self.npzprocess(path)
+
+    def npzprocess(self, path):
         load = dict(np.load(path))
         if self.length:
             if len(load['wave']) <= self.length:
@@ -86,8 +99,29 @@ class NPZDataset(DatasetMixin):
                 if self.mode == 'softmax':
                     rdict[rkey] = mulaw_quantize(rdict[rkey]).astype('int32')
 
-        return rdict
+    def get_example_from_names(self, names, random=True):
+        names = deepcopy(names)
+        if random:
+            shuffle(names)
+
+        path = None
+        for name in names:
+            for p in self._paths:
+                if name in p:
+                    path = p
+                    break
+            break
+
+        if path is None:
+            return None
+
+        return self.npzprocess(path)
 
 
 if __name__ == '__main__':
-    NPZDataset(length=7680).get_example(1)
+    import matplotlib.pyplot as plt
+    dataset = NPZDataset(length=7680)
+    print(len(dataset))
+    print(np.random.randint(len(dataset)))
+    x = dataset.get_example(np.random.randint(len(dataset)))
+    print(x)
