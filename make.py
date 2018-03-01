@@ -58,8 +58,8 @@ def process(wavpath, wav_dir, npz_dir, override, kwargs):
         pspec = np.abs(Zxx)
         mspec = melspectrogram(
             sr=kwargs['fs'], S=pspec, n_mels=kwargs['nmels'], power=1.0)
-        pspec = np.log10(pspec).T.astype('float32')
-        mspec = np.log10(mspec).T.astype('float32')
+        pspec = pspec.T.astype('float32')
+        mspec = mspec.T.astype('float32')
         upsample = kwargs['fs'] // (1000 // kwargs['frame_period'])
         s_upsample.value = upsample
         length = (len(trimed) // upsample) * upsample
