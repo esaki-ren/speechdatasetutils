@@ -56,10 +56,8 @@ def process(wavpath, wav_dir, npz_dir, override, kwargs):
         _, _, Zxx = signal.stft(
             trimed, fs=kwargs['fs'], window=kwargs['window'], nperseg=kwargs['nperseg'], noverlap=kwargs['noverlap'])
         pspec = np.abs(Zxx)
-        pspec[pspec < kwargs['spec_threshold']] = kwargs['spec_threshold']
         mspec = melspectrogram(
             sr=kwargs['fs'], S=pspec, n_mels=kwargs['nmels'], power=1.0)
-        mspec[mspec < kwargs['spec_threshold']] = kwargs['spec_threshold']
         pspec = np.log10(pspec).T.astype('float32')
         mspec = np.log10(mspec).T.astype('float32')
         upsample = kwargs['fs'] // (1000 // kwargs['frame_period'])
