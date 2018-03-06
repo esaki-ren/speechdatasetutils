@@ -115,6 +115,7 @@ class NPZDataset(DatasetMixin):
                     1, -1) / (2.0**15 - 1)).astype('float32')
                 if self.mode == 'softmax':
                     rdict[rkey] = mulaw_quantize(rdict[rkey]).astype('int32')
+        return rdict
 
     def get_example_from_names(self, names, random=True):
         names = deepcopy(names)
