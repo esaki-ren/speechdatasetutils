@@ -23,7 +23,7 @@ default_dataset_root = os.path.join(DEFAULT['datasetroot'], DEFAULT['npzdir'])
 
 class NPZDataset(DatasetMixin):
 
-    def __init__(self, dataset_root=default_dataset_root, dataset_dir="", param_file="datasetparam.json", length=7680, spec_mode='conv', mode='mixture', log_spec=True, spec_thr=None, keydict=dict(wave='wave', lc='mspec')):
+    def __init__(self, dataset_root=default_dataset_root, dataset_dir="", param_file="datasetparam.json", length=7680, spec_mode='conv', mode='mixture', log_spec=True, spec_thr=1.0e-10, keydict=dict(wave='wave', lc='mspec')):
         if dataset_dir:
             data_dir = os.path.join(dataset_root, dataset_dir)
         else:
@@ -36,20 +36,29 @@ class NPZDataset(DatasetMixin):
         
         mspec_max = load['mspec_max']
         pspec_max = load['pspec_max']
-        if 
-        mspec_min = load['mspec_min']
-        pspec_min = load['pspec_min']
-        self.m_shift = load['mspec_min']
-        self.m_scale = load['mspec_max'] - load['mspec_min']
-        self.p_shift = load['pspec_min']
-        self.p_scale = load['pspec_max'] - load['pspec_min']
+        self.spec_thr = spec_thr
+        if spec_thr:
+            mspec_min = spec_thr
+            pspec_min = spec_thr
+        else:
+            mspec_min = load['mspec_min']
+            pspec_min = load['pspec_min']
+        if log_spec:
+            self.m_shift = np.log10(mspec_min)
+            self.p_shift = np.log10(pspec_min)
+            self.m_scale = np.log10(mspec_max) - np.log10(mspec_min)
+            self.p_scale = np.log10(pspec_max) - np.log10(pspec_min)
+        else:
+            self.m_shift = mspec_min
+            self.m_scale = mspec_max - mspec_min
+            self.p_shift = pspec_min
+            self.p_scale = pspec_max - pspec_min
         self.upsample = load['upsample']
         self.length = length
         self.mode = mode
         self.spec_mode = spec_mode
         self.keydict = keydict
         self.log_spec = log_spec
-        self.spec_thr = spec_thr
         
 
     def __len__(self):
@@ -80,6 +89,14 @@ class NPZDataset(DatasetMixin):
                                           self.upsample:(index + self.length) // self.upsample]
             load['pspec'] = load['pspec'][index //
                                           self.upsample:(index + self.length) // self.upsample]
+        
+            if self.spec_thr:
+                load['pspec'] = np.clip(load['pspec'], self.spec_thr, None)
+                load['mspec'] = np.clip(load['mspec'], self.spec_thr, None)
+
+            if self.log_spec:
+                load['pspec'] = np.log10(load['pspec'])
+                load['mspec'] = np.log10(load['mspec'])
 
         rdict = {}
         for rkey, key in self.keydict.items():
