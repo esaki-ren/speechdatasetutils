@@ -90,13 +90,13 @@ class NPZDataset(DatasetMixin):
             load['pspec'] = load['pspec'][index //
                                           self.upsample:(index + self.length) // self.upsample]
         
-            if self.spec_thr:
-                load['pspec'] = np.clip(load['pspec'], self.spec_thr, None)
-                load['mspec'] = np.clip(load['mspec'], self.spec_thr, None)
+        if self.spec_thr:
+            load['pspec'] = np.clip(load['pspec'], self.spec_thr, None)
+            load['mspec'] = np.clip(load['mspec'], self.spec_thr, None)
 
-            if self.log_spec:
-                load['pspec'] = np.log10(load['pspec'])
-                load['mspec'] = np.log10(load['mspec'])
+        if self.log_spec:
+            load['pspec'] = np.log10(load['pspec'])
+            load['mspec'] = np.log10(load['mspec'])
 
         rdict = {}
         for rkey, key in self.keydict.items():
