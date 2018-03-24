@@ -125,12 +125,16 @@ class NPZDataset(DatasetMixin):
         path = None
         for name in names:
             for p in self._paths:
+                print(name)
+                print(p)
+                print()
                 if name in p:
                     path = p
                     break
             break
 
         if path is None:
+            raise FileNotFoundError
             return None
 
         return self.npzprocess(path)
