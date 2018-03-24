@@ -130,7 +130,6 @@ class NPZDataset(DatasetMixin):
                     print(p)
                     path = p
                     break
-            break
 
         if path is None:
             raise FileNotFoundError
