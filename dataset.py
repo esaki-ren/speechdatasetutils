@@ -131,7 +131,7 @@ class NPZDataset(DatasetMixin):
                     path = p
                     break
 
-            if path is None:
+            if path is not None:
                 break
 
         if path is None:
