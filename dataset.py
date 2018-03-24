@@ -131,6 +131,9 @@ class NPZDataset(DatasetMixin):
                     path = p
                     break
 
+            if path is None:
+                break
+
         if path is None:
             raise FileNotFoundError
             return None
