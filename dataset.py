@@ -124,6 +124,7 @@ class NPZDataset(DatasetMixin):
 
         path = None
         for name in names:
+            print(names)
             for p in self._paths:
                 if name == os.path.basename(p):
                     print(p)
