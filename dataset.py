@@ -41,7 +41,7 @@ class NPZDataset(DatasetMixin):
         self.pspec_min = load.pop('pspec_min')
         self.upsample =  load.pop('upsample')
         self.params = load 
-        
+
     def __len__(self):
         return len(self._paths)
 
@@ -144,7 +144,7 @@ def transform_for_ssrn(indata, mspec_max, pspec_max, length=None, mspec_min=1e-1
         scale = pspec_max - pspec_min
         indata['pspec'] = (indata['pspec'] - shift) / scale
 
-    return indata['mspec'].astype('float32'), indata['pspec'].astype('float32')
+    return indata['mspec'].astype('float32'), indata['pspec'].astype('float32') * 0.9 + 0.05
 
 
 if __name__ == '__main__':
