@@ -35,12 +35,13 @@ class NPZDataset(DatasetMixin):
         with open(os.path.join(dataset_root, param_file), 'r') as f:
             load = json.load(f)
 
-        self.mspec_max = load['mspec_max']
-        self.pspec_max = load['pspec_max']
-        self.mspec_min = load['mspec_min']
-        self.pspec_min = load['pspec_min']
-        self.upsample = load['upsample']
-
+        self.mspec_max = load.pop('mspec_max')
+        self.pspec_max = load.pop('pspec_max')
+        self.mspec_min = load.pop('mspec_min')
+        self.pspec_min = load.pop('pspec_min')
+        self.upsample =  load.pop('upsample')
+        self.params = load 
+        
     def __len__(self):
         return len(self._paths)
 
