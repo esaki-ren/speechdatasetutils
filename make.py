@@ -4,21 +4,24 @@ import json
 import os
 from glob import glob
 from multiprocessing import Value
-from random import choice
 
-import chainer
+# import chainer
 import numpy as np
-from chainer.dataset import DatasetMixin
-from chainer.dataset.convert import to_device
+# from chainer.dataset import DatasetMixin
+# from chainer.dataset.convert import to_device
 from joblib import Parallel, delayed
 from librosa import load
 from librosa.feature import melspectrogram
-from librosa.util import frame
-from nnmnkwii.preprocessing import mulaw_quantize
+# from librosa.util import frame
+# from nnmnkwii.preprocessing import mulaw_quantize
 from pyvad import trim
 from scipy import signal
 
 from default_settings import DEFAULT
+
+# from random import choice
+
+
 
 mspec_max = Value('f', -10000000000.0)
 pspec_max = Value('f', -10000000000.0)
@@ -53,6 +56,9 @@ def process(wavpath, wav_dir, npz_dir, override, kwargs):
     if trimed is not None:
         if len(trimed) < kwargs['minimum_len']:
             return
+        if kwargs['rescaling']:
+            trimed /= np.max(np.abs(trimed))
+            trimed *= 0.95
         _, _, Zxx = signal.stft(
             trimed, fs=kwargs['fs'], window=kwargs['window'], nperseg=kwargs['nperseg'], noverlap=kwargs['noverlap'])
         pspec = np.abs(Zxx)
@@ -73,7 +79,7 @@ def process(wavpath, wav_dir, npz_dir, override, kwargs):
         trimed = (trimed * (2**15 - 1)).astype('int16')
         os.makedirs(path, exist_ok=True)
         np.savez(savepath,
-                    wave=trimed.astype('int16'), mspec=mspec.astype('float32'), pspec=pspec.astype('float32'))
+                 wave=trimed.astype('int16'), mspec=mspec.astype('float32'), pspec=pspec.astype('float32'))
 
 
 def make_npz(override, **kwargs):
@@ -83,14 +89,13 @@ def make_npz(override, **kwargs):
         glob(os.path.join(wav_dir, '**', '*.wav'), recursive=True))
 
     try:
-        
+
         Parallel(n_jobs=-1)([delayed(process)(wavpath, wav_dir, npz_dir, override, kwargs)
                              for wavpath in wavpaths])
         """
         for wavpath in wavpaths:
             process(wavpath, wav_dir, npz_dir, override, kwargs)
         """
-        
 
     except KeyboardInterrupt:
         pass
@@ -110,4 +115,4 @@ if __name__ == '__main__':
     parser.add_argument('--override', '-or', action='store_false',
                         help='Use GPU')
     args = vars(parser.parse_args())
-    make_npz(args['override'] ,**DEFAULT)
+    make_npz(args['override'], **DEFAULT)
