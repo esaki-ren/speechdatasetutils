@@ -2,19 +2,11 @@ import json
 import os
 from copy import deepcopy
 from glob import glob
-# from random import choice, shuffle
 from random import shuffle
 
-# import chainer
 import numpy as np
 from chainer.dataset import DatasetMixin
-# from chainer.dataset.convert import to_device
-# from librosa import load
-# from librosa.feature import melspectrogram
-# from librosa.util import frame
 from nnmnkwii.preprocessing import mulaw_quantize
-# from pyvad import trim
-# from scipy import signal
 
 from .default_settings import DEFAULT
 
@@ -39,8 +31,8 @@ class NPZDataset(DatasetMixin):
         self.pspec_max = load.pop('pspec_max')
         self.mspec_min = load.pop('mspec_min')
         self.pspec_min = load.pop('pspec_min')
-        self.upsample =  load.pop('upsample')
-        self.params = load 
+        self.upsample = load.pop('upsample')
+        self.params = load
 
     def __len__(self):
         return len(self._paths)
