@@ -93,7 +93,7 @@ def transform_for_wnv(indata, spec_max, spec_min=1e-10, length=7680, upsample=80
 
     rdict = {}
     rdict['lc'] = indata['mspec'].astype('float32').T
-    rdict['wave'] = (indata('wave').reshape(
+    rdict['wave'] = (indata['wave'].reshape(
         1, -1) / (2.0**15 - 1)).astype('float32')
     if softmax:
         rdict['wave'] = mulaw_quantize(rdict['wave']).astype('int32')
