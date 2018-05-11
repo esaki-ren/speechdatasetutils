@@ -11,7 +11,7 @@ NPERSEG = 960
 
 DEFAULT = dict(
     datasetroot = DATASETROOT,
-    wavdir = 'wav',
+    wavdir = 'wav/wav',
     npzdir = 'npz',
 
     window = 'hann',
