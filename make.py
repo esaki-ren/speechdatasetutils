@@ -5,21 +5,14 @@ import os
 from glob import glob
 from multiprocessing import Value
 
-# import chainer
 import numpy as np
-# from chainer.dataset import DatasetMixin
-# from chainer.dataset.convert import to_device
 from joblib import Parallel, delayed
 from librosa import load
 from librosa.feature import melspectrogram
-# from librosa.util import frame
-# from nnmnkwii.preprocessing import mulaw_quantize
 from pyvad import trim
 from scipy import signal
 
 from default_settings import DEFAULT
-
-# from random import choice
 
 
 
