@@ -8,6 +8,6 @@ def write_wav(filename, rate, data):
         if np.abs(data).max() > 1.0:
             data = data / np.abs(data).max() * 0.99
 
-        data = data * (2**(16 - 1) - 1)
+        data = (data * (2**(16 - 1) - 1)).astype('int16')
 
     write(filename, rate, data)
