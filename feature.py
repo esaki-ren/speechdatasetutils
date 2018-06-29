@@ -6,20 +6,25 @@ import pysptk
 import pyworld
 from librosa import load
 from librosa.feature import melspectrogram
+from nnmnkwii.preprocessing import preemphasis
 from scipy import signal
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.io import loadmat, savemat, wavfile
 
 
-def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True, dtype='float32'):
+def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True, preemphasis_coef=None, dtype='float32'):
     noverlap = nperseg - (fs * frame_period // 1000)
     assert signal.check_COLA(window, nperseg, noverlap)
 
     if rescaling:
         wave /= np.max(np.abs(wave))
-        wave *= 0.95
+        wave *= 0.99
+    if preemphasis_coef is not None:
+        spec_wave = preemphasis(wave, preemphasis_coef)
+    else:
+        spec_wave = wave
     _, _, Zxx = signal.stft(
-        wave, fs=fs, window=window, nperseg=nperseg, noverlap=noverlap)
+        spec_wave, fs=fs, window=window, nperseg=nperseg, noverlap=noverlap)
     pspec = np.abs(Zxx)
     mspec = melspectrogram(
         sr=fs, S=pspec, n_mels=nmels, power=1.0)
