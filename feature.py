@@ -12,9 +12,12 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.io import loadmat, savemat, wavfile
 
 
-def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True, preemphasis_coef=None, dtype='float32'):
+def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32'):
     noverlap = nperseg - (fs * frame_period // 1000)
     assert signal.check_COLA(window, nperseg, noverlap)
+
+    if f_max is None:
+        f_max = fs//2
 
     if rescaling:
         wave /= np.max(np.abs(wave))
