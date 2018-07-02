@@ -11,7 +11,7 @@ NPERSEG = 960
 
 DEFAULT = dict(
     datasetroot = DATASETROOT,
-    wavdir = 'wav',
+    wavdir = 'wav/wav',
     npzdir = 'npz',
 
     window = 'hann',
@@ -24,6 +24,7 @@ DEFAULT = dict(
     res_type='scipy',
     minimum_len=10000,
     preemphasis=0.97,
+    rescaling=True,
 )
 if __name__ == '__main__':
     assert signal.check_COLA(DEFAULT['WINDOW'], DEFAULT['NPERSEG'], DEFAULT['NOVERLAP'])
