@@ -24,7 +24,7 @@ DEFAULT = dict(
     res_type='scipy',
     minimum_len=10000,
     preemphasis_coef=0.97,
-    f_min=125,
+    f_min=70,
     f_max=7600,
     rescaling=True,
 )
