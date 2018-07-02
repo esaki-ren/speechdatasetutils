@@ -23,7 +23,7 @@ DEFAULT = dict(
     nmels = 80,
     res_type='scipy',
     minimum_len=10000,
-    preemphasis=0.97,
+    preemphasis_coef=0.97,
     rescaling=True,
 )
 if __name__ == '__main__':
