@@ -16,9 +16,6 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
     noverlap = nperseg - (fs * frame_period // 1000)
     assert signal.check_COLA(window, nperseg, noverlap)
 
-    if f_max is None:
-        f_max = fs//2
-
     if rescaling:
         wave /= np.max(np.abs(wave))
         wave *= 0.99
@@ -30,7 +27,7 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
         spec_wave, fs=fs, window=window, nperseg=nperseg, noverlap=noverlap)
     pspec = np.abs(Zxx)
     mspec = melspectrogram(
-        sr=fs, S=pspec, n_mels=nmels, power=1.0)
+        sr=fs, S=pspec, n_mels=nmels, fmin=f_min, fmax=f_max, power=1.0)
     pspec = pspec.T.astype(dtype)
     mspec = mspec.T.astype(dtype)
     upsample = fs // (1000 // frame_period)
