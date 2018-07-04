@@ -21,6 +21,9 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
         wave *= 0.99
     if preemphasis_coef is not None:
         spec_wave = preemphasis(wave, preemphasis_coef)
+        if rescaling:
+            spec_wave /= np.max(np.abs(spec_wave))
+            spec_wave *= 0.99
     else:
         spec_wave = wave
     _, _, Zxx = signal.stft(
