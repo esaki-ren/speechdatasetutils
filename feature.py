@@ -41,6 +41,8 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
 
 def wav2world(wave, fs, mcep_order=24, f0_smoothing=20, ap_smoothing=5, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
     # setup default values
+    wave = wave.astype('float64')
+
     frame_period = pyworld.default_frame_period if frame_period is None else frame_period
     f0_floor = pyworld.default_f0_floor if f0_floor is None else f0_floor
     f0_ceil = pyworld.default_f0_ceil if f0_ceil is None else f0_ceil
