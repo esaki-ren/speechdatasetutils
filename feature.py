@@ -104,9 +104,8 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None):
     fft_len = fbin * 2 - 2
     alpha = pysptk.util.mcepalpha(fs)
 
-
     # clf0 2 f0
-    f0 = 10**f0 * vuv
+    f0 = 10**clf0 * vuv
 
     # cap 2 ap
     if cap.ndim != 2:
@@ -116,8 +115,8 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None):
     # mcep 2 sp
     if sp is None:
         if mcep is None:
-            raise  ValueError
-        
+            raise ValueError
+
         else:
             sp = pysptk.mgc2sp(mcep, alpha=alpha, fftlen=fft_len)
             sp = np.abs(np.exp(sp)) ** 2
