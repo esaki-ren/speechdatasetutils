@@ -120,6 +120,7 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None):
         
         else:
             sp = pysptk.mgc2sp(mcep, alpha=alpha, fftlen=fft_len)
+            sp = np.abs(np.exp(sp)) ** 2
 
     wave = pyworld.synthesize(f0, sp, ap, fs)
 
