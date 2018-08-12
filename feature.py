@@ -101,6 +101,9 @@ def modspec_smoothing(array, fs, cut_off=30, axis=0):
 def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None):
 
     # setup
+    clf0 = np.ascontiguousarray(clf0)
+    vuv = np.ascontiguousarray(vuv)
+    cap = np.ascontiguousarray(cap)
     fft_len = fbin * 2 - 2
     alpha = pysptk.util.mcepalpha(fs)
 
@@ -118,8 +121,11 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None):
             raise ValueError
 
         else:
+            mcep = np.ascontiguousarray(mcep)
             sp = pysptk.mgc2sp(mcep, alpha=alpha, fftlen=fft_len)
             sp = np.abs(np.exp(sp)) ** 2
+    else:
+        sp = np.ascontiguousarray(sp)
 
     wave = pyworld.synthesize(f0, sp, ap, fs)
 
