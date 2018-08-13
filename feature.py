@@ -100,9 +100,11 @@ def modspec_smoothing(array, fs, cut_off=30, axis=0):
     return signal.filtfilt(h, 1, array, axis)
 
 
-def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None):
+def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None):
 
     # setup
+    frame_period = pyworld.default_frame_period if frame_period is None else frame_period
+    
     clf0 = np.ascontiguousarray(clf0)
     vuv = np.ascontiguousarray(vuv)
     cap = np.ascontiguousarray(cap)
