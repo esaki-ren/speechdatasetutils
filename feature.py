@@ -39,7 +39,7 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
     return wave, spec, mspec, upsample
 
 
-def wav2world(wave, fs, mcep_order=24, f0_smoothing=-1, ap_smoothing=10, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
+def wav2world(wave, fs, mcep_order=24, f0_smoothing=20, ap_smoothing=10, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
     # setup default values
     wave = wave.astype('float64')
 
@@ -95,8 +95,8 @@ def wav2world(wave, fs, mcep_order=24, f0_smoothing=-1, ap_smoothing=10, mcep_sm
     return mcep, clf0, vuv, cap, sp, fbin, t
 
 
-def modspec_smoothing(array, fs, cut_off=30, axis=0):
-    h = signal.firwin(33, cut_off, nyq=fs // 2)
+def modspec_smoothing(array, fs, cut_off=30, axis=0, fbin=11):
+    h = signal.firwin(fbin, cut_off, nyq=fs // 2)
     return signal.filtfilt(h, 1, array, axis)
 
 
