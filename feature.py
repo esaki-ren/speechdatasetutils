@@ -96,7 +96,7 @@ def wav2world(wave, fs, mcep_order=24, f0_smoothing=-1, ap_smoothing=10, mcep_sm
 
 
 def modspec_smoothing(array, fs, cut_off=30, axis=0):
-    h = signal.firwin(65, cut_off, nyq=fs // 2)
+    h = signal.firwin(33, cut_off, nyq=fs // 2)
     return signal.filtfilt(h, 1, array, axis)
 
 
