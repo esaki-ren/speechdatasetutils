@@ -105,9 +105,9 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None):
     # setup
     frame_period = pyworld.default_frame_period if frame_period is None else frame_period
     
-    clf0 = np.ascontiguousarray(clf0)
+    clf0 = np.ascontiguousarray(clf0.astype('float64'))
     vuv = np.ascontiguousarray(vuv > 0.5).astype('int')
-    cap = np.ascontiguousarray(cap)
+    cap = np.ascontiguousarray(cap.astype('float64'))
     fft_len = fbin * 2 - 2
     alpha = pysptk.util.mcepalpha(fs)
 
