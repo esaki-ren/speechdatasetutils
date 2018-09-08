@@ -125,7 +125,7 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None):
             raise ValueError
 
         else:
-            mcep = np.ascontiguousarray(mcep)
+            mcep = np.ascontiguousarray(mcep.astype('float64'))
             sp = pysptk.mgc2sp(mcep, alpha=alpha, fftlen=fft_len)
             sp = np.abs(np.exp(sp)) ** 2
     else:
