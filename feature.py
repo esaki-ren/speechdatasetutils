@@ -112,7 +112,7 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None):
     alpha = pysptk.util.mcepalpha(fs)
 
     # clf0 2 f0
-    f0 = 10**clf0 * vuv
+    f0 = np.squeeze(10**clf0 * vuv)
 
     # cap 2 ap
     if cap.ndim != 2:
