@@ -8,7 +8,7 @@ from librosa import load
 from librosa.feature import melspectrogram
 from nnmnkwii.preprocessing import preemphasis
 from scipy import signal
-from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.interpolate import PchipInterpolator
 from scipy.io import loadmat, savemat, wavfile
 
 
@@ -39,50 +39,102 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
     return wave, spec, mspec, upsample
 
 
-"""
-def ap_extract(ap, fs, band):
-    
-    #extract bap and vuv from ap
-    
-    # bap
-    bap = np.zeros([ap.shape[0], len(band) - 1])
-    f = np.linspace(0, fs // 2, num=ap.shape[1])
+def wav2world(wave, fs, mcep_order=24, f0_smoothing=20, ap_smoothing=10, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
+    # setup default values
+    wave = wave.astype('float64')
 
-    for i in range(len(band) - 1):
-
-        index = (f >= band[i]) & (f <= band[i + 1])
-        rep = np.sum(index)
-        bap[:, i] = np.mean(ap[:, index], axis=1).reshape(-1)
-
-    # vuv
-    vuv = ap[:, 0] < 0.5
-    return bap, vuv.astype('int')
-
-
-def wav2world(filepath, f0_floor, f0_ceil, frame_period, apband, fs=16000):
-    fs, wav = wavfile.read(filepath)
-    wav = wav / 2**15
+    frame_period = pyworld.default_frame_period if frame_period is None else frame_period
+    f0_floor = pyworld.default_f0_floor if f0_floor is None else f0_floor
+    f0_ceil = pyworld.default_f0_ceil if f0_ceil is None else f0_ceil
+    alpha = pysptk.util.mcepalpha(fs)
 
     # world
-    f0, t = pyworld.harvest(wav, fs,
+    f0, t = pyworld.harvest(wave, fs,
                             f0_floor=f0_floor,
                             f0_ceil=f0_ceil,
                             frame_period=frame_period)
-    sp = pyworld.cheaptrick(wav, f0, t, fs)
-    ap = pyworld.d4c(wav, f0, t, fs)
+    sp = pyworld.cheaptrick(wave, f0, t, fs)
+    ap = pyworld.d4c(wave, f0, t, fs)
 
-    # extract band ap and vuv from ap
-    bap, vuv = ap_extract(ap, fs, apband)
+    # extract vuv from ap
+    vuv_b = ap[:, 0] < 0.5
+    vuv = vuv_b.astype('int')
+
+    # continuous log f0
+    idx = np.arange(len(f0))
+    vuv_b[0] = vuv_b[-1] = True
+    f0[0] = f0[idx[vuv_b]][1]
+    f0[-1] = f0[idx[vuv_b]][-2]
+
+    clf0 = np.zeros_like(f0)
+    clf0[idx[vuv_b]] = np.log10(f0[idx[vuv_b]])
+    clf0[idx[~vuv_b]] = PchipInterpolator(
+        idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
+
+    if f0_smoothing > 0:
+        clf0 = modspec_smoothing(
+            clf0, 1000 / frame_period, cut_off=f0_smoothing)
+
+    # continuous coded ap
+    cap = pyworld.code_aperiodicity(ap, fs)
+    cap[0] = cap[-1] = 1
+    cap[idx[~vuv_b]] = PchipInterpolator(
+        idx[vuv_b], cap[idx[vuv_b]])(idx[~vuv_b])
+
+    if ap_smoothing > 0:
+        cap = modspec_smoothing(cap, 1000 / frame_period, cut_off=ap_smoothing)
+
+    # mcep
+    mcep = pysptk.mcep(sp, order=mcep_order, alpha=alpha, itype=4)
+
+    if ap_smoothing > 0:
+        mcep = modspec_smoothing(
+            mcep, 1000 / frame_period, cut_off=mcep_smoothing)
 
     fbin = sp.shape[1]
-    return f0, t, bap, vuv, fbin, fs, sp
+    return mcep, clf0, vuv, cap, sp, fbin, t
 
 
-def wavfile2spec(filepath, fs, window, nperseg, noverlap, n_mels, dtype='float32'):
-    y, sr = load(filepath, sr=fs, mono=True, res_type='scipy')
-    f, t, Zxx = signal.stft(y, fs=fs, window=window,
-                            nperseg=nperseg, noverlap=noverlap)
-    espec = np.abs(Zxx)
-    mspec = melspectrogram(sr=sr, S=espec, n_mels=n_mels, power=1.0)
-    return espec.T.astype(dtype), mspec.T.astype(dtype), t, fs
-"""
+def modspec_smoothing(array, fs, cut_off=30, axis=0, fbin=11):
+    h = signal.firwin(fbin, cut_off, nyq=fs // 2)
+    return signal.filtfilt(h, 1, array, axis)
+
+
+def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None):
+
+    # setup
+    frame_period = pyworld.default_frame_period if frame_period is None else frame_period
+    
+    clf0 = np.ascontiguousarray(clf0.astype('float64'))
+    vuv = np.ascontiguousarray(vuv > 0.5).astype('int')
+    cap = np.ascontiguousarray(cap.astype('float64'))
+    fft_len = fbin * 2 - 2
+    alpha = pysptk.util.mcepalpha(fs)
+
+    # clf0 2 f0
+    f0 = np.squeeze(10**clf0 * vuv)
+
+    # cap 2 ap
+    if cap.ndim != 2:
+        cap = np.expand_dims(cap, 1)
+    ap = pyworld.decode_aperiodicity(cap, fs, fft_len)
+
+    # mcep 2 sp
+    if sp is None:
+        if mcep is None:
+            raise ValueError
+
+        else:
+            mcep = np.ascontiguousarray(mcep.astype('float64'))
+            sp = pysptk.mgc2sp(mcep, alpha=alpha, fftlen=fft_len)
+            sp = np.abs(np.exp(sp)) ** 2
+    else:
+        sp = np.ascontiguousarray(sp)
+
+    wave = pyworld.synthesize(f0, sp, ap, fs)
+
+    scale = np.abs(wave).max()
+    if scale > 0.99:
+        wave = wave / scale * 0.99
+
+    return wave
