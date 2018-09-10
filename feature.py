@@ -67,7 +67,7 @@ def wav2world(wave, fs, mcep_order=24, f0_smoothing=20, ap_smoothing=10, mcep_sm
     f0[-1] = f0[idx[vuv_b]][-2]
 
     clf0 = np.zeros_like(f0)
-    clf0[idx[vuv_b]] = np.log10(f0[idx[vuv_b]])
+    clf0[idx[vuv_b]] = np.log(f0[idx[vuv_b]])
     clf0[idx[~vuv_b]] = PchipInterpolator(
         idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
 
@@ -109,7 +109,7 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None):
     alpha = pysptk.util.mcepalpha(fs)
 
     # clf0 2 f0
-    f0 = np.squeeze(10**clf0 * vuv)
+    f0 = np.squeeze(np.exp(clf0)) * vuv
 
     # cap 2 ap
     if cap.ndim != 2:
