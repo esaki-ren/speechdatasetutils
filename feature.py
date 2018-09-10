@@ -77,9 +77,6 @@ def wav2world(wave, fs, mcep_order=24, f0_smoothing=20, ap_smoothing=10, mcep_sm
 
     # continuous coded ap
     cap = pyworld.code_aperiodicity(ap, fs)
-    cap[0] = cap[-1] = 1
-    cap[idx[~vuv_b]] = PchipInterpolator(
-        idx[vuv_b], cap[idx[vuv_b]])(idx[~vuv_b])
 
     if ap_smoothing > 0:
         cap = modspec_smoothing(cap, 1000 / frame_period, cut_off=ap_smoothing)
