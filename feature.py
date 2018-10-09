@@ -7,6 +7,7 @@ import pyworld
 from librosa import load
 from librosa.feature import melspectrogram
 from nnmnkwii.preprocessing import preemphasis
+from nnmnkwii.postfilters import merlin_post_filter
 from scipy import signal
 from scipy.interpolate import PchipInterpolator
 from scipy.io import loadmat, savemat, wavfile
@@ -97,7 +98,7 @@ def modspec_smoothing(array, fs, cut_off=30, axis=0, fbin=11):
     return signal.filtfilt(h, 1, array, axis)
 
 
-def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None):
+def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None, mcep_postfilter=False):
 
     # setup
     frame_period = pyworld.default_frame_period if frame_period is None else frame_period
@@ -122,6 +123,8 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None):
             raise ValueError
 
         else:
+            if mcep_postfilter:
+                mcep = merlin_post_filter(mcep, alpha)
             mcep = np.ascontiguousarray(mcep.astype('float64'))
             sp = pysptk.mgc2sp(mcep, alpha=alpha, fftlen=fft_len)
             sp = np.abs(np.exp(sp)) ** 2
