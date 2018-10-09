@@ -123,9 +123,9 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None, m
             raise ValueError
 
         else:
+            mcep = np.ascontiguousarray(mcep.astype('float64'))
             if mcep_postfilter:
                 mcep = merlin_post_filter(mcep, alpha)
-            mcep = np.ascontiguousarray(mcep.astype('float64'))
             sp = pysptk.mgc2sp(mcep, alpha=alpha, fftlen=fft_len)
             sp = np.abs(np.exp(sp)) ** 2
     else:
