@@ -28,6 +28,7 @@ DEFAULT = dict(
     f_min=70,
     f_max=7600,
     rescaling=True,
+    pad=0.2 # [s]
 )
 
 if __name__ == '__main__':
