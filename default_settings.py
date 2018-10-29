@@ -22,12 +22,13 @@ DEFAULT = dict(
     noverlap=NPERSEG - NSHIFT,
     nmels=80,
     res_type='kaiser_best',
-    minimum_len=10000,
+    minimum_len=8000,
     # preemphasis_coef=0.97,
     preemphasis_coef=None,
-    f_min=70,
+    f_min=0, # 70
     f_max=7600,
     rescaling=True,
+    pad=0.4, # [s]
 )
 
 if __name__ == '__main__':
