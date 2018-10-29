@@ -39,7 +39,7 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
     return wave, spec, mspec, upsample
 
 
-def wav2world(wave, fs, mcep_order=24, f0_smoothing=20, ap_smoothing=10, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
+def wav2world(wave, fs, mcep_order=25, f0_smoothing=30, ap_smoothing=15, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
     # setup default values
     wave = wave.astype('float64')
 
