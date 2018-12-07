@@ -68,7 +68,7 @@ def wav2world(wave, fs, mcep_order=25, f0_smoothing=20, ap_smoothing=20, mcep_sm
     f0[-1] = f0[idx[vuv_b]][-2]
 
     clf0 = np.zeros_like(f0)
-    clf0[idx[vuv_b]] = np.log(f0[idx[vuv_b]])
+    clf0[idx[vuv_b]] = np.log(np.clip(f0[idx[vuv_b]], f0_floor/2, f0_ceil*2))
     clf0[idx[~vuv_b]] = PchipInterpolator(
         idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
 
