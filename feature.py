@@ -24,7 +24,7 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
         spec_wave = preemphasis(wave, preemphasis_coef)
     else:
         spec_wave = wave
-    _, _, Zxx = signal.stft(
+    _, t, Zxx = signal.stft(
         spec_wave, fs=fs, window=window, nperseg=nperseg, noverlap=noverlap)
     pspec = np.abs(Zxx)
     mspec = melspectrogram(
