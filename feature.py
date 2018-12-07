@@ -40,7 +40,7 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
     return wave, spec, mspec, upsample
 
 
-def wav2world(wave, fs, mcep_order=25, f0_smoothing=30, ap_smoothing=15, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
+def wav2world(wave, fs, mcep_order=25, f0_smoothing=20, ap_smoothing=20, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
     # setup default values
     wave = wave.astype('float64')
 
@@ -85,7 +85,7 @@ def wav2world(wave, fs, mcep_order=25, f0_smoothing=30, ap_smoothing=15, mcep_sm
     # mcep
     mcep = pysptk.mcep(sp, order=mcep_order, alpha=alpha, itype=4)
 
-    if ap_smoothing > 0:
+    if mcep_smoothing > 0:
         mcep = modspec_smoothing(
             mcep, 1000 / frame_period, cut_off=mcep_smoothing)
 
