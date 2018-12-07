@@ -13,7 +13,7 @@ from scipy.interpolate import PchipInterpolator
 from scipy.io import loadmat, savemat, wavfile
 
 
-def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32'):
+def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32', return_t=False):
     noverlap = nperseg - (fs * frame_period // 1000)
     assert signal.check_COLA(window, nperseg, noverlap)
 
@@ -37,7 +37,10 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
     mspec = mspec[:length // upsample]
     spec = pspec[:length // upsample]
 
-    return wave, spec, mspec, upsample
+    if return_t:
+        return wave, spec, mspec, upsample, t
+    else:
+        return wave, spec, mspec, upsample
 
 
 def wav2world(wave, fs, mcep_order=25, f0_smoothing=30, ap_smoothing=15, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
