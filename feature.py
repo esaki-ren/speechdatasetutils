@@ -96,6 +96,40 @@ def wav2world(wave, fs, mcep_order=25, f0_smoothing=20, ap_smoothing=20, mcep_sm
     return mcep, clf0, vuv, cap, sp, fbin, t
 
 
+def f0_extract(wave, fs, frame_period=None, f0_floor=None, f0_ceil=None):
+    # setup default values
+    wave = wave.astype('float64')
+
+    frame_period = pyworld.default_frame_period if frame_period is None else frame_period
+    f0_floor = pyworld.default_f0_floor if f0_floor is None else f0_floor
+    f0_ceil = pyworld.default_f0_ceil if f0_ceil is None else f0_ceil
+
+    # world
+    f0, t = pyworld.harvest(wave, fs,
+                            f0_floor=f0_floor,
+                            f0_ceil=f0_ceil,
+                            frame_period=frame_period)
+    ap = pyworld.d4c(wave, f0, t, fs)
+
+    # extract vuv from ap
+    vuv_b = ap[:, 0] < 0.5
+    vuv = vuv_b.astype('int')
+
+    # continuous log f0
+    idx = np.arange(len(f0))
+    vuv_b[0] = vuv_b[-1] = True
+    f0[0] = f0[idx[vuv_b]][1]
+    f0[-1] = f0[idx[vuv_b]][-2]
+
+    clf0 = np.zeros_like(f0)
+    clf0[idx[vuv_b]] = np.log(np.clip(f0[idx[vuv_b]], f0_floor/2, f0_ceil*2))
+    clf0[idx[~vuv_b]] = PchipInterpolator(
+        idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
+
+    
+    return clf0, vuv, t
+
+
 def modspec_smoothing(array, fs, cut_off=30, axis=0, fbin=11):
     h = signal.firwin(fbin, cut_off, nyq=fs // 2)
     return signal.filtfilt(h, 1, array, axis)
