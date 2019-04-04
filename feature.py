@@ -12,10 +12,11 @@ from scipy import signal
 from scipy.interpolate import PchipInterpolator
 from scipy.io import loadmat, savemat, wavfile
 
+from .utils import make_stft_args
 
-def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32', return_t=False):
-    noverlap = nperseg - (fs * frame_period // 1000)
-    assert signal.check_COLA(window, nperseg, noverlap)
+
+def wave2spec(wave, fs, frame_period, window, nperseg=None, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32', return_t=False):
+    stft_kwargs = make_stft_args(frame_period, fs, nperseg=nperseg, window=window)
 
     if rescaling:
         wave /= np.max(np.abs(wave))
@@ -25,7 +26,7 @@ def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True,
     else:
         spec_wave = wave
     _, t, Zxx = signal.stft(
-        spec_wave, fs=fs, window=window, nperseg=nperseg, noverlap=noverlap)
+        spec_wave, **stft_kwargs)
     pspec = np.abs(Zxx)
     mspec = melspectrogram(
         sr=fs, S=pspec, n_mels=nmels, fmin=f_min, fmax=f_max, power=1.0)
