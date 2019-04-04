@@ -12,4 +12,5 @@ def make_stft_args(frame_period, fs, nperseg=None, window='hann', **kwargs):
     dct = dict(fs=fs, window=window, nperseg=nperseg, noverlap=noverlap)
     assert check_COLA(**dct)
 
+    dct["fs"] = fs
     return dct
