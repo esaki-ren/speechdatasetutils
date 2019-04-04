@@ -1,5 +1,3 @@
-import os
-
 
 DEFAULT = dict(
     window='hann',
