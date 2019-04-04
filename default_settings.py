@@ -1,19 +1,11 @@
 import os
 
-from scipy import signal
-
-FS = 16000
-FRAME_PERIOD = 5  # [ms]
-NSHIFT = FS * FRAME_PERIOD // 1000
-NPERSEG = 960
 
 DEFAULT = dict(
     window='hann',
-    fs=FS,
-    frame_period=FRAME_PERIOD,  # [ms]
-    nshift=NSHIFT,
-    nperseg=NPERSEG,
-    noverlap=NPERSEG - NSHIFT,
+    fs=16000,
+    frame_period=5,  # [ms]
+    nperseg=960,
     nmels=80,
     res_type='kaiser_best',
     minimum_len=8000,
@@ -25,5 +17,4 @@ DEFAULT = dict(
 )
 
 if __name__ == '__main__':
-    assert signal.check_COLA(
-        DEFAULT['WINDOW'], DEFAULT['NPERSEG'], DEFAULT['NOVERLAP'])
+    pass
