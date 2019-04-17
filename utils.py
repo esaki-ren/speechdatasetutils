@@ -5,7 +5,7 @@ def make_stft_args(frame_period, fs, nperseg=None, window='hann', **kwargs):
     nshift = fs * frame_period // 1000
 
     if nperseg is None:
-        nperseg = nshift * 2
+        nperseg = nshift * 4
 
     noverlap = nperseg - nshift
 
