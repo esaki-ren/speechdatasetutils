@@ -67,13 +67,15 @@ def wav2world(wave, fs, mcep_order=25, f0_smoothing=20, ap_smoothing=20, mcep_sm
     # continuous log f0
     idx = np.arange(len(f0))
     vuv_b[0] = vuv_b[-1] = True
-    f0[0] = f0[idx[vuv_b]][1]
-    f0[-1] = f0[idx[vuv_b]][-2]
+    v_idx = tuple(idx[vuv_b])
+    u_idx = tuple(idx[~vuv_b])
+    f0[0] = f0[v_idx][1]
+    f0[-1] = f0[v_idx][-2]
 
     clf0 = np.zeros_like(f0)
-    clf0[idx[vuv_b]] = np.log(np.clip(f0[idx[vuv_b]], f0_floor/2, f0_ceil*2))
-    clf0[idx[~vuv_b]] = PchipInterpolator(
-        idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
+    clf0[v_idx] = np.log(np.clip(f0[v_idx], f0_floor/2, f0_ceil*2))
+    clf0[u_idx] = PchipInterpolator(
+        idx[vuv_b], clf0[v_idx])(idx[~vuv_b])
 
     if f0_smoothing > 0:
         clf0 = modspec_smoothing(
