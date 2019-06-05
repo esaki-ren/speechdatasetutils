@@ -12,11 +12,10 @@ from scipy import signal
 from scipy.interpolate import PchipInterpolator
 from scipy.io import loadmat, savemat, wavfile
 
-from .utils import make_stft_args
 
-
-def wave2spec(wave, fs, frame_period, window, nperseg=None, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32', return_t=False):
-    stft_kwargs = make_stft_args(frame_period, fs, nperseg=nperseg, window=window)
+def wave2spec(wave, fs, nperseg, frame_period, window, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32', return_t=False):
+    noverlap = nperseg - (fs * frame_period // 1000)
+    assert signal.check_COLA(window, nperseg, noverlap)
 
     if rescaling:
         wave /= np.max(np.abs(wave))
@@ -26,7 +25,7 @@ def wave2spec(wave, fs, frame_period, window, nperseg=None, nmels=80, rescaling=
     else:
         spec_wave = wave
     _, t, Zxx = signal.stft(
-        spec_wave, **stft_kwargs)
+        spec_wave, fs=fs, window=window, nperseg=nperseg, noverlap=noverlap)
     pspec = np.abs(Zxx)
     mspec = melspectrogram(
         sr=fs, S=pspec, n_mels=nmels, fmin=f_min, fmax=f_max, power=1.0)
@@ -68,15 +67,13 @@ def wav2world(wave, fs, mcep_order=25, f0_smoothing=20, ap_smoothing=20, mcep_sm
     # continuous log f0
     idx = np.arange(len(f0))
     vuv_b[0] = vuv_b[-1] = True
-    v_idx = tuple(idx[vuv_b])
-    u_idx = tuple(idx[~vuv_b])
-    f0[0] = f0[v_idx][1]
-    f0[-1] = f0[v_idx][-2]
+    f0[0] = f0[idx[vuv_b]][1]
+    f0[-1] = f0[idx[vuv_b]][-2]
 
     clf0 = np.zeros_like(f0)
-    clf0[v_idx] = np.log(np.clip(f0[v_idx], f0_floor/2, f0_ceil*2))
-    clf0[u_idx] = PchipInterpolator(
-        idx[vuv_b], clf0[v_idx])(idx[~vuv_b])
+    clf0[idx[vuv_b]] = np.log(np.clip(f0[idx[vuv_b]], f0_floor/2, f0_ceil*2))
+    clf0[idx[~vuv_b]] = PchipInterpolator(
+        idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
 
     if f0_smoothing > 0:
         clf0 = modspec_smoothing(
