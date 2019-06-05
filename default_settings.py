@@ -1,11 +1,9 @@
-import os
-
 
 DEFAULT = dict(
     window='hann',
     fs=16000,
     frame_period=5,  # [ms]
-    nperseg=960,
+    # nperseg=960,
     nmels=80,
     res_type='kaiser_best',
     minimum_len=8000,
