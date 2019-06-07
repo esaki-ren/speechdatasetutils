@@ -132,6 +132,8 @@ def f0_extract(wave, fs, frame_period=None, f0_floor=None, f0_ceil=None):
 
 
 def modspec_smoothing(array, fs, cut_off=30, axis=0, fbin=11):
+    if cut_off > fs / 2:
+        return array
     h = signal.firwin(fbin, cut_off, nyq=fs // 2)
     return signal.filtfilt(h, 1, array, axis)
 
