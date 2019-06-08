@@ -171,7 +171,7 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None, m
     else:
         sp = np.ascontiguousarray(sp)
 
-    wave = pyworld.synthesize(f0, sp, ap, fs)
+    wave = pyworld.synthesize(f0, sp, ap, fs, frame_period=frame_period)
 
     scale = np.abs(wave).max()
     if scale > 0.99:
