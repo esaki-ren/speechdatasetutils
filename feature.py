@@ -6,8 +6,9 @@ import pysptk
 import pyworld
 from librosa import load
 from librosa.feature import melspectrogram
-from nnmnkwii.preprocessing import preemphasis
 from nnmnkwii.postfilters import merlin_post_filter
+from nnmnkwii.preprocessing import preemphasis
+from pyreaper import reaper
 from scipy import signal
 from scipy.interpolate import PchipInterpolator
 from scipy.io import loadmat, savemat, wavfile
@@ -15,8 +16,11 @@ from scipy.io import loadmat, savemat, wavfile
 from .utils import make_stft_args
 
 
-def wave2spec(wave, fs, frame_period, window, nperseg=None, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32', return_t=False):
-    stft_kwargs = make_stft_args(frame_period, fs, nperseg=nperseg, window=window)
+def wave2spec(wave, fs, frame_period, window, nperseg=None,
+              nmels=80, rescaling=True, preemphasis_coef=None,
+              f_min=0, f_max=None, dtype='float32', return_t=False):
+    stft_kwargs = make_stft_args(
+        frame_period, fs, nperseg=nperseg, window=window)
 
     if rescaling:
         wave /= np.max(np.abs(wave))
@@ -44,32 +48,53 @@ def wave2spec(wave, fs, frame_period, window, nperseg=None, nmels=80, rescaling=
         return wave, spec, mspec, upsample
 
 
-def wav2world(wave, fs, mcep_order=25, f0_smoothing=20, ap_smoothing=20, mcep_smoothing=50, frame_period=None, f0_floor=None, f0_ceil=None):
+def wav2world(wave, fs, mcep_order=25, f0_smoothing=30, ap_smoothing=0,
+              mcep_smoothing=0, frame_period=None,
+              f0_floor=None, f0_ceil=None):
     # setup default values
     wave = wave.astype('float64')
 
     frame_period = pyworld.default_frame_period if frame_period is None else frame_period
-    f0_floor = pyworld.default_f0_floor if f0_floor is None else f0_floor
-    f0_ceil = pyworld.default_f0_ceil if f0_ceil is None else f0_ceil
+    # f0_floor = pyworld.default_f0_floor if f0_floor is None else f0_floor
+    # f0_ceil = pyworld.default_f0_ceil if f0_ceil is None else f0_ceil
+    f0_floor = 40.0 if f0_floor is None else f0_floor
+    f0_ceil = 500.0 if f0_ceil is None else f0_ceil
     alpha = pysptk.util.mcepalpha(fs)
 
+    # reaper
+    _, _, t, f0, _ = reaper(
+        (wave * (2**15 - 1)).astype("int16"), fs,
+        minf0=f0_floor, maxf0=f0_ceil,
+        do_high_pass=True, do_hilbert_transform=True,
+        inter_pulse=0.01, frame_period=frame_period/1000,
+        unvoiced_cost=0.9)
+    t = t.astype("float64")
+    f0 = f0.astype("float64")
+
     # world
+    """
     f0, t = pyworld.harvest(wave, fs,
                             f0_floor=f0_floor,
                             f0_ceil=f0_ceil,
                             frame_period=frame_period)
+    """
     sp = pyworld.cheaptrick(wave, f0, t, fs)
-    ap = pyworld.d4c(wave, f0, t, fs)
+    ap = pyworld.d4c(wave, f0, t, fs, threshold=0.85)
 
-    # extract vuv from ap
-    vuv_b = ap[:, 0] < 0.5
+    # extract vuv from ap and f0
+    vuv = (ap[:, 0] < 0.5).astype('int')
+    vuv_b=(ap[:, 0] < 0.5)
+    vuv_b = f0*vuv > 1
     vuv = vuv_b.astype('int')
 
     # continuous log f0
     idx = np.arange(len(f0))
-    vuv_b[0] = vuv_b[-1] = True
-    f0[0] = f0[idx[vuv_b]][1]
-    f0[-1] = f0[idx[vuv_b]][-2]
+    if not vuv_b[0]:
+        f0[0] = f0[idx[vuv_b]].mean()
+        vuv_b[0] = True
+    if not vuv_b[-1]:
+        f0[-1] = f0[idx[vuv_b]].mean()
+        vuv_b[-1] = True
 
     clf0 = np.zeros_like(f0)
     clf0[idx[vuv_b]] = np.log(np.clip(f0[idx[vuv_b]], f0_floor/2, f0_ceil*2))
@@ -87,7 +112,9 @@ def wav2world(wave, fs, mcep_order=25, f0_smoothing=20, ap_smoothing=20, mcep_sm
         cap = modspec_smoothing(cap, 1000 / frame_period, cut_off=ap_smoothing)
 
     # mcep
+    print(sp.shape)
     mcep = pysptk.mcep(sp, order=mcep_order, alpha=alpha, itype=4)
+    print(mcep.shape)
 
     if mcep_smoothing > 0:
         mcep = modspec_smoothing(
@@ -127,7 +154,6 @@ def f0_extract(wave, fs, frame_period=None, f0_floor=None, f0_ceil=None):
     clf0[idx[~vuv_b]] = PchipInterpolator(
         idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
 
-    
     return clf0, vuv, t
 
 
@@ -142,7 +168,7 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None, m
 
     # setup
     frame_period = pyworld.default_frame_period if frame_period is None else frame_period
-    
+
     clf0 = np.ascontiguousarray(clf0.astype('float64'))
     vuv = np.ascontiguousarray(vuv > 0.5).astype('int')
     cap = np.ascontiguousarray(cap.astype('float64'))
