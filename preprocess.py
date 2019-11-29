@@ -16,9 +16,9 @@ def normalize_peak(waveform):
 def normalize_rms(waveform, fs, gain=-11.0):
 
     nshift = int(fs*0.05)
-    pad = waveform.size % nshift
-    wave_dc = np.pad(waveform, (0, pad), "constant")
-    framed = wave_dc.reshape(-1, nshift)
+    pad = nshift - waveform.size % nshift
+    waveform = np.pad(waveform, (0, pad), "constant")
+    framed = waveform.reshape(-1, nshift)
     rms = np.sqrt((framed**2.0).mean(1))
 
     idx = int(rms.size*0.95)
