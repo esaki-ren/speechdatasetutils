@@ -15,12 +15,10 @@ from scipy.io import loadmat, savemat, wavfile
 from .utils import make_stft_args
 
 
-def wave2spec(wave, fs, frame_period, window, nperseg=None, nmels=80, rescaling=True, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32', return_t=False):
-    stft_kwargs = make_stft_args(frame_period, fs, nperseg=nperseg, window=window)
+def wave2spec(wave, fs, frame_period, window, nperseg=None, nmels=80, preemphasis_coef=None, f_min=0, f_max=None, dtype='float32', return_t=False):
+    stft_kwargs = make_stft_args(
+        frame_period, fs, nperseg=nperseg, window=window)
 
-    if rescaling:
-        wave /= np.max(np.abs(wave))
-        wave *= 0.99
     if preemphasis_coef is not None:
         spec_wave = preemphasis(wave, preemphasis_coef)
     else:
@@ -127,7 +125,6 @@ def f0_extract(wave, fs, frame_period=None, f0_floor=None, f0_ceil=None):
     clf0[idx[~vuv_b]] = PchipInterpolator(
         idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
 
-    
     return clf0, vuv, t
 
 
@@ -142,7 +139,7 @@ def world2wav(clf0, vuv, cap, fs, fbin, mcep=None, sp=None, frame_period=None, m
 
     # setup
     frame_period = pyworld.default_frame_period if frame_period is None else frame_period
-    
+
     clf0 = np.ascontiguousarray(clf0.astype('float64'))
     vuv = np.ascontiguousarray(vuv > 0.5).astype('int')
     cap = np.ascontiguousarray(cap.astype('float64'))
