@@ -23,8 +23,7 @@ def normalize_rms(waveform, fs, gain=-11.0):
     framed = waveform.reshape(-1, nshift)
     rms = np.sqrt((framed**2.0).mean(1))
 
-    idx = int(rms.size*0.95)
-    peak = np.sort(rms)[idx]
+    peak = rms.max()
     peak_db = 20 * np.log10(peak)
     scale_db = gain - peak_db
     scale = 10.0 ** (scale_db / 20.0)
