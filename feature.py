@@ -146,8 +146,7 @@ def f0_extract(wave, fs, frame_period=None, f0_floor=None, f0_ceil=None):
     # continuous log f0
     idx = np.arange(len(f0))
     vuv_b[0] = vuv_b[-1] = True
-    f0[0] = f0[idx[vuv_b]][1]
-    f0[-1] = f0[idx[vuv_b]][-2]
+    f0[0] = f0[-1] = f0[idx[vuv_b]].mean()
 
     clf0 = np.zeros_like(f0)
     clf0[idx[vuv_b]] = np.log(
