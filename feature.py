@@ -45,8 +45,8 @@ def wave2spec(
 
 def wav2world(
         wave, fs,
-        mcep_order=25, f0_smoothing=20,
-        ap_smoothing=20, mcep_smoothing=50,
+        mcep_order=25, f0_smoothing=0,
+        ap_smoothing=0, mcep_smoothing=0,
         frame_period=None, f0_floor=None, f0_ceil=None,
         f0_mode="reaper"):
     # setup default values
