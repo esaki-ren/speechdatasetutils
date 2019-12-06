@@ -4,7 +4,7 @@ from scipy import signal
 
 
 def remove_dc(waveform, fs, numtaps=1025, cutoff=15):
-    numtaps = min(numtaps, 2**int(np.log2((len(waveform)-1)/3)) + 1)
+    numtaps = min(numtaps, 2**int(np.log2((len(waveform)-1)//3)) + 1)
     b = signal.firwin(numtaps, cutoff, pass_zero=False, nyq=fs / 2)
     return signal.filtfilt(b, [1], waveform)
 
