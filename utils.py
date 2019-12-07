@@ -1,4 +1,6 @@
+import numpy as np
 from scipy.signal import check_COLA
+
 from .preprocess import normalize
 
 
