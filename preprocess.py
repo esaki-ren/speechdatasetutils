@@ -13,9 +13,10 @@ def remove_dc2(waveform, fs, numtaps=1025, cutoff=15):
     print("remove_dc2")
     numtaps = min(numtaps, 2**int(np.log2((len(waveform)-1)//3)) + 1)
     b = signal.firwin(numtaps, cutoff, pass_zero=False, nyq=fs / 2)
-    waveform = np.ascontiguousarray(waveform.copy())
+    a = np.array([1.0], dtype=b.dtype)
+    # waveform = np.ascontiguousarray(waveform.copy())
     # return signal.filtfilt(b, [1], waveform)
-    signal.filtfilt(b, [1], waveform)
+    signal.filtfilt(b, a, waveform)
     # signal.lfilter(b, [1], waveform)
     return waveform
 
