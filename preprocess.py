@@ -36,6 +36,8 @@ def normalize(
         waveform, fs, dc_removal=True,
         peak=True, rms=False, rms_gain=-11.0, cutoff=15):
 
+    waveform = waveform.copy()
+
     if dc_removal:
         waveform = remove_dc(waveform, fs)
 
