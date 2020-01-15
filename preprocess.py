@@ -35,12 +35,13 @@ def normalize_rms(waveform, fs, gain=-11.0):
 def normalize(
         waveform, fs, dc_removal=True,
         peak=True, rms=False, rms_gain=-11.0, cutoff=15):
+
     if dc_removal:
         waveform = remove_dc(waveform, fs)
 
     if peak:
-        ret = normalize_peak(waveform)
+        waveform = normalize_peak(waveform)
     elif rms:
-        ret = normalize_rms(waveform, fs, gain=rms_gain)
+        waveform = normalize_rms(waveform, fs, gain=rms_gain)
 
-    return ret
+    return waveform
