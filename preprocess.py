@@ -48,7 +48,9 @@ def normalize(
 
     if dc_removal:
         # waveform = remove_dc(waveform, fs)
+        print("before remove_dc2")
         waveform = remove_dc2(waveform, fs)
+    print("after remove_dc2")
 
     if peak:
         waveform = normalize_peak(waveform)
