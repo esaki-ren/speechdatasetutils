@@ -11,7 +11,7 @@ def remove_dc(waveform, fs, numtaps=1025, cutoff=15):
 
 def remove_dc2(waveform, fs, numtaps=1025, cutoff=15):
     print("remove_dc2")
-    # numtaps = min(numtaps, 2**int(np.log2((len(waveform)-1)//3)) + 1)
+    numtaps = min(numtaps, 2**int(np.log2((len(waveform)-1)//3)) + 1)
     # b = signal.firwin(numtaps, cutoff, pass_zero=False, nyq=fs / 2)
     # return signal.filtfilt(b, [1], waveform)
     return waveform
@@ -48,9 +48,7 @@ def normalize(
 
     if dc_removal:
         # waveform = remove_dc(waveform, fs)
-        print("before remove_dc2")
         waveform = remove_dc2(waveform, fs)
-    print("after remove_dc2")
 
     if peak:
         waveform = normalize_peak(waveform)
