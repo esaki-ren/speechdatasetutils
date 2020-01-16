@@ -1,9 +1,6 @@
 
 import numpy as np
 from scipy import signal
-from scipy.signal._arraytools import (axis_reverse, axis_slice, const_ext,
-                                      even_ext, odd_ext)
-from scipy.signal.signaltools import _validate_pad
 
 
 def remove_dc(waveform, fs, numtaps=1025, cutoff=15):
@@ -17,56 +14,9 @@ def remove_dc2(waveform, fs, numtaps=1025, cutoff=15):
     b = signal.firwin(numtaps, cutoff, pass_zero=False, nyq=fs / 2)
     a = np.array([1.0], dtype=b.dtype)
     # _filtfilt(b, a, waveform)
-    # zi = signal.lfilter_zi(b, a)
+    zi = signal.lfilter_zi(b, a)
     # signal.filtfilt(b, [1], waveform, method="gust")
     return waveform
-
-
-def _filtfilt(b, a, x, axis=-1, padtype='odd', padlen=None,
-              irlen=None):
-    """
-    modify scipy.signal.filtfilt
-    (https://github.com/scipy/scipy/blob/v0.18.1/scipy/signal/signaltools.py#L2583-L2776)
-    """
-
-    b = np.atleast_1d(b)
-    a = np.atleast_1d(a)
-    x = np.asarray(x)
-
-    # method == "pad"
-    edge, ext = _validate_pad(padtype, padlen, x, axis,
-                              ntaps=max(len(a), len(b)))
-
-    # Get the steady state of the filter's step response.
-    zi = signal.lfilter_zi(b, a)
-
-    return x
-
-    # Reshape zi and create x0 so that zi*x0 broadcasts
-    # to the correct value for the 'zi' keyword argument
-    # to lfilter.
-    zi_shape = [1] * x.ndim
-    zi_shape[axis] = zi.size
-    zi = np.reshape(zi, zi_shape)
-    x0 = axis_slice(ext, stop=1, axis=axis)
-
-    # Forward filter.
-    (y, zf) = signal.lfilter(b, a, ext, axis=axis, zi=zi * x0)
-
-    # Backward filter.
-    # Create y0 so zi*y0 broadcasts appropriately.
-    y0 = axis_slice(y, start=-1, axis=axis)
-    (y, zf) = signal.lfilter(b, a, axis_reverse(
-        y, axis=axis), axis=axis, zi=zi * y0)
-
-    # Reverse y.
-    y = axis_reverse(y, axis=axis)
-
-    if edge > 0:
-        # Slice the actual signal from the extended signal.
-        y = axis_slice(y, start=edge, stop=-edge, axis=axis)
-
-    return y
 
 
 def normalize_peak(waveform):
