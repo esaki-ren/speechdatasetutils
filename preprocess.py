@@ -31,6 +31,8 @@ def _filtfilt(b, a, x, axis=-1, padtype='odd', padlen=None,
     a = np.atleast_1d(a)
     x = np.asarray(x)
 
+    return x
+
     # method == "pad"
     edge, ext = _validate_pad(padtype, padlen, x, axis,
                               ntaps=max(len(a), len(b)))
