@@ -211,12 +211,12 @@ def world2wav(
 
 def sp2mcep(sp, fs, order=24):
     alpha = pysptk.util.mcepalpha(fs)
-    return pysptk.mcep(sp, 24, alpha=alpha, itype=4)
+    return pysptk.mcep(sp, order, alpha=alpha, itype=4)
 
 
-def spec2mfcc(spec, fs):
+def spec2mfcc(spec, fs, order=24):
     n_fft = spec.shape[-1] * 2 - 2
     mfb = mel(fs, n_fft)
     mspec = 20 * np.log10(spec @ mfb.T)
-    mfc = mfcc(y=None, sr=fs, S=mspec.T, n_mfcc=24, dct_type=2, norm='ortho').T
+    mfc = mfcc(y=None, sr=fs, S=mspec.T, n_mfcc=order, dct_type=2, norm='ortho').T
     return mfc
