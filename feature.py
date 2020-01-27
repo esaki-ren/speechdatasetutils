@@ -2,7 +2,8 @@
 import numpy as np
 import pysptk
 import pyworld
-from librosa.feature import melspectrogram
+from librosa.feature import melspectrogram, mfcc
+from librosa.filters import mel
 from nnmnkwii.postfilters import merlin_post_filter
 from nnmnkwii.preprocessing import preemphasis
 from pyreaper import reaper
@@ -206,3 +207,16 @@ def world2wav(
         wave = wave / scale * 0.99
 
     return wave
+
+
+def sp2mcep(sp, fs, order=24):
+    alpha = pysptk.util.mcepalpha(fs)
+    return pysptk.mcep(sp, 24, alpha=alpha, itype=4)
+
+
+def spec2mfcc(spec, fs):
+    n_fft = spec.shape[-1] * 2 - 2
+    mfb = mel(fs, n_fft)
+    mspec = 20 * np.log10(spec @ mfb.T)
+    mfc = mfcc(y=None, sr=fs, S=mspec.T, n_mfcc=24, dct_type=2, norm='ortho').T
+    return mfc
