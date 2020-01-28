@@ -215,8 +215,19 @@ def sp2mcep(sp, fs, order=24):
 
 
 def spec2mfcc(spec, fs, order=24):
-    n_fft = spec.shape[-1] * 2 - 2
+    fbin = spec.shape[-1]
+    n_fft = fbin * 2 - 2
+
+    # pre-emphasis
+    _, h = signal.freqz([1.0, -0.97], 1, fbin)
+    spec = spec * np.abs(h)
+
+    # apply mel fb
     mfb = mel(fs, n_fft)
     mspec = 20 * np.log10(spec @ mfb.T)
-    mfc = mfcc(y=None, sr=fs, S=mspec.T, n_mfcc=order, dct_type=2, norm='ortho').T
+
+    # dct
+    mfc = mfcc(y=None, sr=fs, S=mspec.T, n_mfcc=order,
+               dct_type=2, norm='ortho').T
+
     return mfc
