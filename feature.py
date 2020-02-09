@@ -214,7 +214,7 @@ def sp2mcep(sp, fs, order=24):
     return pysptk.mcep(sp, order, alpha=alpha, itype=4)
 
 
-def spec2mfcc(spec, fs, order=24):
+def spec2mfcc(spec, fs, order=24, power=1.0):
     fbin = spec.shape[-1]
     n_fft = fbin * 2 - 2
 
@@ -224,7 +224,7 @@ def spec2mfcc(spec, fs, order=24):
 
     # apply mel fb
     mfb = mel(fs, n_fft)
-    mspec = 20 * np.log10(spec @ mfb.T)
+    mspec = 20.0 / power * np.log10(spec @ mfb.T)
 
     # dct
     mfc = mfcc(y=None, sr=fs, S=mspec.T, n_mfcc=order,
