@@ -214,17 +214,25 @@ def sp2mcep(sp, fs, order=24):
     return pysptk.mcep(sp, order, alpha=alpha, itype=4)
 
 
-def spec2mfcc(spec, fs, order=24, power=1.0, n_mels=128):
+def apply_melfb(spec, fs, n_mels=128, amin=1e-10):
     fbin = spec.shape[-1]
     n_fft = fbin * 2 - 2
+    mfb = mel(fs, n_fft, n_mels=n_mels)
+    spec = np.maximum(spec, amin)
+    mspec = np.maximum(spec @ mfb.T, amin)
+    return mspec
+
+
+def spec2mfcc(spec, fs, order=24, n_mels=128, amin=1e-10):
+    fbin = spec.shape[-1]
 
     # pre-emphasis
     _, h = signal.freqz([1.0, -0.97], 1, fbin)
     spec = spec * np.abs(h)
 
     # apply mel fb
-    mfb = mel(fs, n_fft, n_mels=n_mels)
-    mspec = 20.0 / power * np.log10(spec @ mfb.T)
+    mspec = apply_melfb(spec, fs, n_mels, amin)
+    mspec = 20.0 * np.log10(mspec)
 
     # dct
     mfc = mfcc(y=None, sr=fs, S=mspec.T, n_mfcc=order,
