@@ -31,10 +31,12 @@ def spec_augment(spec, t_rate=0.05, f_rate=0.1):
     T = int(tau * t_rate)
     F = int(nu * f_rate)
 
-    t0 = np.random.randint(tau - T)
-    spec[t0:t0+T] = spec[t0:t0+T].mean()
+    if T > 0:
+        t0 = np.random.randint(tau - T)
+        spec[t0:t0+T] = spec[t0:t0+T].mean()
 
-    f0 = np.random.randint(nu - F)
-    spec[:, f0:f0+F] = spec[:, f0:f0+F].mean()
+    if F > 0:
+        f0 = np.random.randint(nu - F)
+        spec[:, f0:f0+F] = spec[:, f0:f0+F].mean()
 
     return spec
