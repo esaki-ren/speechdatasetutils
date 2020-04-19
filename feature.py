@@ -16,10 +16,16 @@ from .utils import make_stft_args
 def wave2spec(
         wave, fs, frame_period, window,
         nperseg=None, nmels=80, preemphasis_coef=None,
-        f_min=0, f_max=None, dtype='float32', return_t=False):
+        f_min=0, f_max=None, dtype='float32',
+        return_t=False, invertible=False):
 
     stft_kwargs = make_stft_args(
         frame_period, fs, nperseg=nperseg, window=window)
+
+    if invertible:
+        htk, norm = True, None
+    else:
+        htk, norm = False, "slaney"
 
     if preemphasis_coef is not None:
         spec_wave = preemphasis(wave, preemphasis_coef)
@@ -29,7 +35,9 @@ def wave2spec(
         spec_wave, **stft_kwargs)
     pspec = np.abs(Zxx)
     mspec = melspectrogram(
-        sr=fs, S=pspec, n_mels=nmels, fmin=f_min, fmax=f_max, power=1.0)
+        sr=fs, S=pspec,
+        n_mels=nmels, fmin=f_min, fmax=f_max,
+        power=1.0, htk=htk, norm=norm)
     pspec = pspec.T.astype(dtype)
     mspec = mspec.T.astype(dtype)
     upsample = fs // (1000 // frame_period)
