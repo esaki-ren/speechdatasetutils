@@ -57,7 +57,7 @@ def wav2world(
         mcep_order=25, f0_smoothing=0,
         ap_smoothing=0, mcep_smoothing=0,
         frame_period=None, f0_floor=None, f0_ceil=None,
-        f0_mode="reaper"):
+        f0_mode="harvest"):
     # setup default values
     wave = wave.astype('float64')
 
@@ -68,13 +68,11 @@ def wav2world(
     alpha = pysptk.util.mcepalpha(fs)
 
     # f0
-
     if f0_mode == "harvest":
         f0, t = pyworld.harvest(
             wave, fs,
             f0_floor=f0_floor, f0_ceil=f0_ceil,
             frame_period=frame_period)
-
         threshold = 0.85
 
     elif f0_mode == "reaper":
@@ -96,19 +94,24 @@ def wav2world(
     ap = pyworld.d4c(wave, f0, t, fs, threshold=threshold)
 
     # extract vuv from ap
-    vuv_b = (ap[:, 0] < 0.5) * (f0 > 1.0)
-    vuv = vuv_b.astype('int')
+    vuv_flag = (ap[:, 0] < 0.5) * (f0 > 1.0)
+    vuv = vuv_flag.astype('int')
 
     # continuous log f0
-    idx = np.arange(len(f0))
-    vuv_b[0] = vuv_b[-1] = True
-    f0[0] = f0[-1] = f0[idx[vuv_b]].mean()
+    if not vuv_flag[0]:
+        f0[0] = f0[vuv_flag][0]
+        vuv_flag[0] = True
+    if not vuv_flag[-1]:
+        f0[-1] = f0[vuv_flag][-1]
+        vuv_flag[-1] = True
 
+    idx = np.arange(len(f0))
     clf0 = np.zeros_like(f0)
-    clf0[idx[vuv_b]] = np.log(
-        np.clip(f0[idx[vuv_b]], f0_floor / 2, f0_ceil * 2))
-    clf0[idx[~vuv_b]] = interp1d(
-        idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
+    clf0[idx[vuv_flag]] = np.log(
+        np.clip(f0[idx[vuv_flag]], f0_floor / 2, f0_ceil * 2))
+    clf0[idx[~vuv_flag]] = interp1d(
+        idx[vuv_flag], clf0[idx[vuv_flag]]
+    )(idx[~vuv_flag])
 
     if f0_smoothing > 0:
         clf0 = modspec_smoothing(
@@ -129,40 +132,6 @@ def wav2world(
 
     fbin = sp.shape[1]
     return mcep, clf0, vuv, cap, sp, fbin, t
-
-
-def f0_extract(wave, fs, frame_period=None, f0_floor=None, f0_ceil=None):
-    # setup default values
-    wave = wave.astype('float64')
-
-    frame_period = pyworld.default_frame_period \
-        if frame_period is None else frame_period
-    f0_floor = pyworld.default_f0_floor if f0_floor is None else f0_floor
-    f0_ceil = pyworld.default_f0_ceil if f0_ceil is None else f0_ceil
-
-    # world
-    f0, t = pyworld.harvest(wave, fs,
-                            f0_floor=f0_floor,
-                            f0_ceil=f0_ceil,
-                            frame_period=frame_period)
-    ap = pyworld.d4c(wave, f0, t, fs)
-
-    # extract vuv from ap
-    vuv_b = ap[:, 0] < 0.5
-    vuv = vuv_b.astype('int')
-
-    # continuous log f0
-    idx = np.arange(len(f0))
-    vuv_b[0] = vuv_b[-1] = True
-    f0[0] = f0[-1] = f0[idx[vuv_b]].mean()
-
-    clf0 = np.zeros_like(f0)
-    clf0[idx[vuv_b]] = np.log(
-        np.clip(f0[idx[vuv_b]], f0_floor / 2, f0_ceil * 2))
-    clf0[idx[~vuv_b]] = interp1d(
-        idx[vuv_b], clf0[idx[vuv_b]])(idx[~vuv_b])
-
-    return clf0, vuv, t
 
 
 def modspec_smoothing(array, fs, cut_off=30, axis=0, fbin=11):
