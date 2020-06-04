@@ -98,24 +98,27 @@ def wav2world(
     vuv = vuv_flag.astype('int')
 
     # continuous log f0
-    if not vuv_flag[0]:
-        f0[0] = f0[vuv_flag][0]
-        vuv_flag[0] = True
-    if not vuv_flag[-1]:
-        f0[-1] = f0[vuv_flag][-1]
-        vuv_flag[-1] = True
-
-    idx = np.arange(len(f0))
     clf0 = np.zeros_like(f0)
-    clf0[idx[vuv_flag]] = np.log(
-        np.clip(f0[idx[vuv_flag]], f0_floor / 2, f0_ceil * 2))
-    clf0[idx[~vuv_flag]] = interp1d(
-        idx[vuv_flag], clf0[idx[vuv_flag]]
-    )(idx[~vuv_flag])
+    if vuv_flag.any():
+        if not vuv_flag[0]:
+            f0[0] = f0[vuv_flag][0]
+            vuv_flag[0] = True
+        if not vuv_flag[-1]:
+            f0[-1] = f0[vuv_flag][-1]
+            vuv_flag[-1] = True
 
-    if f0_smoothing > 0:
-        clf0 = modspec_smoothing(
-            clf0, 1000 / frame_period, cut_off=f0_smoothing)
+        idx = np.arange(len(f0))
+        clf0[idx[vuv_flag]] = np.log(
+            np.clip(f0[idx[vuv_flag]], f0_floor / 2, f0_ceil * 2))
+        clf0[idx[~vuv_flag]] = interp1d(
+            idx[vuv_flag], clf0[idx[vuv_flag]]
+        )(idx[~vuv_flag])
+
+        if f0_smoothing > 0:
+            clf0 = modspec_smoothing(
+                clf0, 1000 / frame_period, cut_off=f0_smoothing)
+    else:
+        clf0 = np.ones_like(f0) * f0_floor
 
     # continuous coded ap
     cap = pyworld.code_aperiodicity(ap, fs)
