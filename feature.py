@@ -84,7 +84,9 @@ def wav2world(
         threshold = 0.1
 
     elif f0_mode == "dio":
-        raise NotImplementedError
+        _f0, t = pyworld.dio(wave, fs)
+        f0 = pyworld.stonemask(wave, _f0, t, fs)
+        threshold = 0.0
 
     else:
         raise ValueError
