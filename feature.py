@@ -17,15 +17,11 @@ def wave2spec(
         wave, fs, frame_period, window,
         nperseg=None, nmels=80, preemphasis_coef=None,
         f_min=0, f_max=None, dtype='float32',
-        return_t=False, invertible=False):
+        return_t=False):
 
     stft_kwargs = make_stft_args(
         frame_period, fs, nperseg=nperseg, window=window)
-
-    if invertible:
-        htk, norm = True, None
-    else:
-        htk, norm = False, "slaney"
+    htk, norm = True, "slaney"
 
     if preemphasis_coef is not None:
         spec_wave = preemphasis(wave, preemphasis_coef)
