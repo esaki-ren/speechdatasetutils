@@ -36,7 +36,8 @@ def normalize(
         waveform, fs, dc_removal=True,
         peak=True, rms=False, rms_gain=-11.0, cutoff=15):
 
-    waveform = waveform.copy()
+    # for avoiding hung up during multi-process
+    waveform = np.array(waveform.copy())
 
     if dc_removal:
         waveform = remove_dc(waveform, fs)
@@ -46,4 +47,6 @@ def normalize(
     elif rms:
         waveform = normalize_rms(waveform, fs, gain=rms_gain)
 
+    # for avoiding hung up during multi-process
+    waveform = np.array(waveform.copy())
     return waveform
